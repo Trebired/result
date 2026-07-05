@@ -8,6 +8,7 @@ const tempRoot = path.join(rootDir, ".tmp", "verify-pack");
 const npmCacheDir = path.join(tempRoot, "npm-cache");
 const packageJsonBackupPath = path.join(rootDir, ".tmp", "package.json.backup");
 const nodeTypesDir = path.join(rootDir, "node_modules", "@types", "node");
+const loggerAdapterDir = path.join(rootDir, "node_modules", "@trebired", "logger-adapter");
 const tscBin = path.join(rootDir, "node_modules", "typescript", "bin", "tsc");
 
 async function main() {
@@ -170,6 +171,7 @@ async function runConsumerSmokeTest(tarballPath) {
     private: true,
     type: "module",
     dependencies: {
+      "@trebired/logger-adapter": `file:${loggerAdapterDir}`,
       "@trebired/result": `file:${tarballPath}`,
     },
     devDependencies: {
@@ -178,8 +180,9 @@ async function runConsumerSmokeTest(tarballPath) {
   }, null, 2));
 
   await fs.writeFile(path.join(consumerDir, "index.ts"), [
-    'import { createResultResponder, result } from "@trebired/result";',
+    'import { createResultResponder, createResultTracer, result } from "@trebired/result";',
     "",
+    "const tracer = createResultTracer();",
     "const responder = createResultResponder({",
     "  json(ctx) {",
     "    return ctx.payload.status;",
@@ -189,16 +192,33 @@ async function runConsumerSmokeTest(tarballPath) {
     "  },",
     "});",
     "",
+    "const traced = tracer.wrapFunction(() => result.ok(\"ready\"), {",
+    "  label: \"pack.smoke\",",
+    "});",
+    "",
     "const out = await responder.respond({",
     "  res: {},",
-    "  result: result.ok(\"ready\"),",
+    "  result: traced(),",
     "});",
     "",
     "console.log(out);",
   ].join("\n"));
 
   await fs.writeFile(path.join(consumerDir, "runtime.mjs"), [
-    'import { DEFAULT_RESULT_PRESETS, resolveResultPreset } from "@trebired/result";',
+    'import { DEFAULT_RESULT_PRESETS, createResultTracer, resolveResultPreset, result } from "@trebired/result";',
+    "",
+    "const records = [];",
+    "const tracer = createResultTracer({",
+    "  logger(record) {",
+    "    records.push(record);",
+    "  },",
+    "});",
+    "",
+    "const wrapped = tracer.wrapFunction(() => result.notFound(\"pack-missing\", \"Missing.\"), {",
+    "  label: \"pack.runtime\",",
+    "});",
+    "",
+    "wrapped();",
     "",
     "const preset = resolveResultPreset({",
     "  presets: DEFAULT_RESULT_PRESETS,",
@@ -207,7 +227,7 @@ async function runConsumerSmokeTest(tarballPath) {
     "  type: \"app.project\",",
     "});",
     "",
-    "console.log(typeof preset.title, typeof preset.message);",
+    "console.log(typeof preset.title, typeof preset.message, records.length);",
   ].join("\n"));
 
   await fs.writeFile(path.join(consumerDir, "tsconfig.json"), JSON.stringify({

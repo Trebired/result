@@ -7,6 +7,7 @@ import {
   normalizeResultErrorCode,
 } from "#shared";
 import type {
+  NormalizedResultLogger,
   ResultLike,
   ResultPreset,
   ResultRenderContext,
@@ -39,10 +40,11 @@ function handleRenderFailure<
   TType extends string = string,
 >(
   config: ResultResponderConfig<Req, Res, TType>,
+  logger: NormalizedResultLogger | null,
   context: ResultRenderContext<Req, Res, TType>,
   error: unknown,
 ) {
-  config.logger?.error?.("result.responder", "render-failed", {
+  logger?.error("result.responder", "render-failed", {
     level: context.level,
     status: context.model.status,
     type: context.model.type || null,

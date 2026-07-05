@@ -12,6 +12,19 @@ export {
 } from "#result";
 export { createResultResponder } from "#responder";
 export {
+  bootResultTracing,
+  createResultTracer,
+} from "./tracer.js";
+export {
+  instrumentResultExports,
+} from "./instrument_result_exports.js";
+export {
+  installResultModuleHooks,
+} from "./module_hooks.js";
+export {
+  installResultProcessHooks,
+} from "./process_hooks.js";
+export {
   DEFAULT_RESULT_PRESETS,
   mergeResultPresets,
   resolveResultPreset,
@@ -22,5 +35,22 @@ export {
   normalizeResultErrorCode,
   toResultStatus,
 } from "#shared";
+export {
+  captureCallSite,
+  compactStack,
+  isFailedResultLike,
+  matchTraceTarget,
+  normalizeThrownValue,
+  normalizeTraceLabel,
+  previewCallArguments,
+  previewValue,
+  summarizeFailedResult,
+} from "./trace/utils.js";
+export {
+  wrapResultFunction,
+} from "./wrap/result/function.js";
+export {
+  wrapResultPromise,
+} from "./wrap/result/promise.js";
 
 export type * from "#types";

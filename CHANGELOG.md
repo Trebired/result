@@ -2,7 +2,8 @@
 
 ## 0.2.0
 
-- Added the next shared result package feature set, repository scaffolding, publishing workflow, and discipline-aligned internal refactors.
+- Expanded `@trebired/result` into a fuller failure-handling toolkit with opt-in tracing, sync and async wrappers, promise tracing, export/object instrumentation, process hooks, module hooks, shared trace utilities, and AsyncLocalStorage-backed trace-stack propagation.
+- Kept the responder and preset system reusable while adding explicit tracing APIs, stronger types, pack verification coverage for the new surface, and updated publishing-ready docs.
 
 ## 0.1.0
 

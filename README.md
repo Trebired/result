@@ -1,10 +1,10 @@
 # @trebired/result
 
-Shared result builders and transport-agnostic response orchestration for Bun and Node.js products.
+Shared result builders, response orchestration, and failure tracing for Bun and Node.js products.
 
-`@trebired/result` is intentionally product-agnostic.
+`@trebired/result` gives Trebired packages a shared result envelope, a transport-facing responder layer, and an opt-in tracing toolkit for failed flows.
 
-It does not know about Express, React, platform page names, agent sync payloads, logger group conventions, or any specific request/response runtime. It gives consumers a shared result envelope plus a responder layer they can wire into their own HTTP, RPC, worker, or page-rendering stack.
+It does not know about Express, React, route names, page names, logger group wording, or a fixed runtime layout. Hosts bring their own adapters and decide which advanced tracing surfaces to enable.
 
 ## Install
 
@@ -16,7 +16,7 @@ npm install @trebired/result
 
 ## Quick Start
 
-Build shared results from normal business logic:
+Build shared result payloads in normal application code:
 
 ```ts
 import { result } from "@trebired/result";
@@ -34,7 +34,7 @@ const missing = result.notFound("project-not-found", "Project not found.", {
 });
 ```
 
-Create a responder by supplying transport adapters:
+Wire a responder with transport adapters:
 
 ```ts
 import { createResultResponder, result } from "@trebired/result";
@@ -63,9 +63,33 @@ return responder.respond({
 });
 ```
 
+Add tracing only where it helps:
+
+```ts
+import { createResultTracer, result } from "@trebired/result";
+
+const tracer = createResultTracer({
+  failedResultSeverity: "warn",
+  logger: console,
+  onTrace(record) {
+    console.error(record.label, record.message, record.traceStack);
+  },
+});
+
+const loadProject = tracer.wrapFunction(async (id: string) => {
+  if (id === "missing") {
+    return result.notFound("project-not-found", "Project not found.");
+  }
+
+  throw new Error("Database offline");
+}, {
+  label: "project.load",
+});
+```
+
 ## Result Builder
 
-The shared result envelope is consistent across success, noop, and error outcomes:
+The shared result envelope stays consistent across success, noop, and error outcomes:
 
 ```ts
 type ResultLike = {
@@ -94,7 +118,7 @@ Builder helpers:
 - `result.conflict(...)`
 - `result.internal(...)`
 
-The `meta` argument is a typed object with optional `data`, `details`, `redirect`, `meta`, and `error` fields.
+The `meta` argument accepts optional `data`, `details`, `redirect`, `meta`, and `error` fields.
 
 ## Responder Model
 
@@ -105,7 +129,7 @@ The responder factory keeps transport concerns outside the package:
 - `text` receives a fallback payload when render is unavailable or throws.
 - `getRenderModePath` is optional and lets a host derive mode-aware render variants such as `app.process.error`.
 
-The responder resolves presets by:
+Preset resolution walks in this order:
 
 1. result level
 2. exact status for that level
@@ -147,7 +171,217 @@ const preset = resolveResultPreset({
 });
 ```
 
-Defaults intentionally stay reusable. No product-specific page names or views are built into the package.
+Defaults stay reusable. No app-specific views, routes, or page names are built in.
+
+## Tracing Toolkit
+
+Tracing is fully opt-in. Nothing patches the runtime unless you call a tracing API.
+
+Logger delivery uses `@trebired/logger-adapter`, so package code can keep Trebired-style `group/message/metadata` logging while still accepting `console`, pino-style loggers, sink functions, or a custom `loggerAdapter` writer.
+
+`createResultTracer()` gives you one runtime with:
+
+- failed-result tracing
+- thrown-error tracing
+- rejected-promise tracing
+- nested trace-stack propagation
+- wrapper and proxy caches
+- optional process and module hooks
+
+```ts
+import { createResultTracer, result } from "@trebired/result";
+
+const records: unknown[] = [];
+const tracer = createResultTracer({
+  stackDepth: 10,
+  failedResultSeverity: "warn",
+  logger: console,
+  onTrace(record) {
+    records.push(record);
+  },
+});
+
+tracer.traceFailure(result.notFound("project-not-found", "Missing."), {
+  label: "project.read",
+});
+```
+
+Each trace record includes:
+
+- `kind`
+- `severity`
+- `label`
+- `errorCode`
+- `status`
+- `message`
+- `compactStack`
+- `failureSite`
+- `argumentPreview`
+- `metadataSummary`
+- `dataSummary`
+- `detailsSummary`
+- `source`
+- `traceStack`
+
+## Wrapping Functions And Promises
+
+Use wrappers when you want tracing without rewriting the function body:
+
+```ts
+import { createResultTracer, result } from "@trebired/result";
+
+const tracer = createResultTracer();
+
+const saveProject = tracer.wrapFunction(async (input: { id: string }) => {
+  if (!input.id) {
+    return result.badRequest("missing-id", "Project id is required.");
+  }
+
+  return result.ok("Saved.");
+}, {
+  label: "project.save",
+});
+
+const remoteSync = tracer.wrapPromise(fetch("https://example.test").then((res) => {
+  if (!res.ok) {
+    throw new Error(`Remote sync failed: ${res.status}`);
+  }
+
+  return res;
+}), {
+  label: "project.sync",
+});
+```
+
+Wrappers preserve original behavior:
+
+- sync return values still return normally
+- async return values still resolve or reject normally
+- failed result payloads are traced
+- thrown and rejected failures are traced
+- the same function or promise is not wrapped twice inside the same tracer runtime
+
+## Export And Object Instrumentation
+
+If a module exports a plain object tree, you can instrument it without hand-wrapping every method:
+
+```ts
+import { createResultTracer } from "@trebired/result";
+import * as handlers from "./handlers.js";
+
+const tracer = createResultTracer({
+  objectDepth: 3,
+});
+
+const instrumented = tracer.instrumentExports(handlers, {
+  label: "handlers",
+  include: "invoice",
+});
+```
+
+Instrumentation:
+
+- wraps callable exports
+- descends into plain object trees up to the configured depth
+- leaves symbol-based access alone
+- caches proxies and wrappers so the same target is reused
+
+## Process And Module Hooks
+
+Advanced runtime hooks are available when you explicitly opt in.
+
+Process hooks:
+
+```ts
+import { installResultProcessHooks } from "@trebired/result";
+
+const hooks = installResultProcessHooks({
+  logger: console,
+  exitOnUncaughtException: false,
+  exitOnUnhandledRejection: false,
+});
+
+hooks.uninstall();
+```
+
+Module hooks:
+
+```ts
+import { installResultModuleHooks } from "@trebired/result";
+
+const hooks = installResultModuleHooks({
+  include: [/services/, /workers/],
+  labelPrefix: "module",
+});
+
+hooks.uninstall();
+```
+
+Module instrumentation only works in runtimes that expose a CommonJS-style loader with `_load` support. It is meant for targeted observability, not for blanket patching in every environment.
+
+## Boot Helper
+
+If you want one entrypoint that creates a tracer and installs selected hooks, use `bootResultTracing()`:
+
+```ts
+import { bootResultTracing } from "@trebired/result";
+
+const boot = bootResultTracing({
+  logger: console,
+  processHooks: {
+    exitOnUncaughtException: false,
+  },
+});
+
+boot.tracer.wrapFunction(() => {
+  throw new Error("boom");
+}, {
+  label: "demo.run",
+});
+```
+
+## Configuration
+
+Tracing configuration lets hosts control:
+
+- `enabled`
+- `logger`
+- `loggerAdapter`
+- `onTrace`
+- `include`
+- `exclude`
+- `objectDepth`
+- `stackDepth`
+- `argumentPreview`
+- `summaryPreview`
+- `failedResultSeverity`
+
+Wrapper and hook helpers also accept:
+
+- `label`
+- `source`
+- `tracer`
+- per-call `include` and `exclude`
+- process exit policies
+- module label prefixes and traversal depth
+
+## Safe Defaults
+
+Safe by default:
+
+- result builders
+- responder factory
+- preset resolution
+- manual tracing with `traceFailure`, `traceResult`, or `traceError`
+- function and promise wrapping
+
+More invasive surfaces:
+
+- export/object instrumentation
+- process hooks
+- module hooks
+
+Those advanced surfaces are still opt-in and can be turned off per host.
 
 ## Public API
 
@@ -164,6 +398,13 @@ Runtime exports:
 - `conflict`
 - `internal`
 - `createResultResponder`
+- `createResultTracer`
+- `bootResultTracing`
+- `wrapResultFunction`
+- `wrapResultPromise`
+- `instrumentResultExports`
+- `installResultProcessHooks`
+- `installResultModuleHooks`
 - `DEFAULT_RESULT_PRESETS`
 - `mergeResultPresets`
 - `resolveResultPreset`
@@ -171,14 +412,14 @@ Runtime exports:
 - `getResultLevel`
 - `normalizeResultErrorCode`
 - `toResultStatus`
+- `captureCallSite`
+- `compactStack`
+- `isFailedResultLike`
+- `matchTraceTarget`
+- `normalizeThrownValue`
+- `normalizeTraceLabel`
+- `previewCallArguments`
+- `previewValue`
+- `summarizeFailedResult`
 
-Type exports:
-
-- `ResultLike`
-- `ResultLevel`
-- `ResultInit`
-- `ResultPreset`
-- `ResultPresetMap`
-- `ResultResponderConfig`
-- `ResultRespondInput`
-- `ResultRenderModel`
+Type exports include the result, responder, preset, and tracing types used by those APIs.

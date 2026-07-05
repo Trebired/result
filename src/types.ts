@@ -1,8 +1,24 @@
+import type {
+  LoggerAdapterEvent,
+  LoggerAdapterGenericLogMethod,
+  LoggerAdapterLogger,
+  LoggerAdapterLogMethod,
+  LoggerAdapterWriter,
+  NormalizedLoggerAdapter,
+} from "@trebired/logger-adapter";
+
 export type MaybePromise<T> = T | Promise<T>;
 
 export type ResultLevel = "ok" | "noop" | "error";
 
 export type ResultMetadata = Record<string, unknown>;
+
+export type ResultLogMethod = LoggerAdapterLogMethod;
+export type ResultGenericLogMethod = LoggerAdapterGenericLogMethod;
+export type ResultLogger = LoggerAdapterLogger;
+export type ResultLoggerAdapter = LoggerAdapterWriter;
+export type NormalizedResultLogger = NormalizedLoggerAdapter;
+export type ResultLogEvent = LoggerAdapterEvent;
 
 export type ResultLike<
   TData = unknown,
@@ -55,10 +71,6 @@ export interface ResolveResultPresetInput<TType extends string = string> {
   level: ResultLevel;
   status?: number | null;
   type?: TType | null;
-}
-
-export interface ResultResponderLogger {
-  error?(scope: string, message: string, meta?: ResultMetadata): void;
 }
 
 export interface ResultRespondInput<
@@ -145,7 +157,8 @@ export interface ResultResponderConfig<
   TType extends string = string,
 > {
   presets?: ResultPresetMap<TType>;
-  logger?: ResultResponderLogger;
+  logger?: ResultLogger;
+  loggerAdapter?: ResultLoggerAdapter;
   json(context: ResultJsonContext<Req, Res, TType>): MaybePromise<unknown>;
   render?(context: ResultRenderContext<Req, Res, TType>): MaybePromise<unknown>;
   text(context: ResultTextContext<Req, Res, TType>): MaybePromise<unknown>;
@@ -160,3 +173,5 @@ export interface ResultResponder<
   respond(input: ResultRespondInput<Req, Res, TType>): MaybePromise<unknown>;
   resolvePreset(input: Omit<ResolveResultPresetInput<TType>, "presets">): ResultPreset;
 }
+
+export type * from "./trace/types.js";

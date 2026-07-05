@@ -86,13 +86,14 @@ function createRenderFallbackResponder(observer: ReturnType<typeof createRenderF
   return createResultResponder({
     presets: createResponderPresets(),
     logger: {
-      error(scope, message, meta) {
+      error(scope: string, message: string, meta?: unknown) {
         observer.logs.push({
           scope,
           message,
           meta,
         });
       },
+      fail() {},
     },
     json() {
       throw new Error("json should not be used");

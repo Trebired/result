@@ -1,3 +1,4 @@
+import { resolveLogger } from "./logging.js";
 import { resolveResultPreset } from "#presets";
 import {
   createTextContext,
@@ -36,13 +37,15 @@ function createResultResponder<
   Res = unknown,
   TType extends string = string,
 >(config: ResultResponderConfig<Req, Res, TType>): ResultResponder<Req, Res, TType> {
+  const logger = resolveLogger(config.logger, config.loggerAdapter);
+
   return {
     respond(input) {
       const context = createBaseContext(config, input);
 
       if (input.render === true) {
         const model = buildRenderModel(config, context);
-        return respondWithRender(config, context, model);
+        return respondWithRender(config, logger, context, model);
       }
 
       const jsonContext = createJsonContext(context);
@@ -176,6 +179,7 @@ function respondWithRender<
   TType extends string = string,
 >(
   config: ResultResponderConfig<Req, Res, TType>,
+  logger: ReturnType<typeof resolveLogger>,
   context: ResultResponderContextBase<Req, Res, TType>,
   model: ResultRenderModel<TType>,
 ) {
@@ -193,13 +197,13 @@ function respondWithRender<
     const rendered = config.render(renderContext);
 
     if (isPromiseLike(rendered)) {
-      return Promise.resolve(rendered).catch((error: unknown) => handleRenderFailure(config, renderContext, error));
+      return Promise.resolve(rendered).catch((error: unknown) => handleRenderFailure(config, logger, renderContext, error));
     }
 
     return rendered;
   }
   catch (error) {
-    return handleRenderFailure(config, renderContext, error);
+    return handleRenderFailure(config, logger, renderContext, error);
   }
 }
 
