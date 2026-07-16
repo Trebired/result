@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Moved package-owned result tracing and responder diagnostics under the `trebired.result` group root while leaving caller-supplied trace labels intact.
+
 ## 0.2.0
 
 - Expanded `@trebired/result` into a fuller failure-handling toolkit with opt-in tracing, sync and async wrappers, promise tracing, export/object instrumentation, process hooks, module hooks, shared trace utilities, and AsyncLocalStorage-backed trace-stack propagation.

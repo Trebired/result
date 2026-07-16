@@ -135,7 +135,7 @@ function expectRenderFallbackObserver(observer: ReturnType<typeof createRenderFa
     renderModePath: "app.process.error",
   });
   expect(observer.logs[0]).toMatchObject({
-    scope: "result.responder",
+    scope: "trebired.result.responder",
     message: "render-failed",
     meta: {
       status: 404,

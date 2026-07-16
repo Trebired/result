@@ -21,7 +21,7 @@ function wrapResultFunctionWithRuntime<Fn extends (...args: any[]) => any>(
   options: WrapResultFunctionOptions = {},
 ): Fn {
   const original = unwrapFunction(fn);
-  const label = normalizeTraceLabel(options.label || original.name, "result.function");
+  const label = normalizeTraceLabel(options.label || original.name, "trebired.result.function");
   const cached = getCachedEntry(runtime.functionCache, original, label);
 
   if (cached) {

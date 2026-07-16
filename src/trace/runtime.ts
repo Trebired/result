@@ -164,7 +164,7 @@ function emitTraceRecord(
   }
 
   runTraceSideEffect(() => selectTraceMethod(logger, record.severity)(
-    "result.trace",
+    "trebired.result.trace",
     record.message,
     buildTraceMeta(record),
   ));

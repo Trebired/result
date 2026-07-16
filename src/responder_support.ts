@@ -44,7 +44,7 @@ function handleRenderFailure<
   context: ResultRenderContext<Req, Res, TType>,
   error: unknown,
 ) {
-  logger?.error("result.responder", "render-failed", {
+  logger?.error("trebired.result.responder", "render-failed", {
     level: context.level,
     status: context.model.status,
     type: context.model.type || null,

@@ -19,7 +19,7 @@ function wrapResultPromiseWithRuntime<T>(
   options: WrapResultPromiseOptions = {},
 ): Promise<T> {
   const original = unwrapPromise(promise);
-  const label = normalizeTraceLabel(options.label, "result.promise");
+  const label = normalizeTraceLabel(options.label, "trebired.result.promise");
   const source = options.source || captureCallSite(undefined, runtime.config.stackDepth).site;
   const cached = getCachedEntry(runtime.promiseCache, original, label);
 

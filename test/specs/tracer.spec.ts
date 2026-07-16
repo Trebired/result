@@ -58,7 +58,7 @@ test("adapts object-style loggers to trace records", () => {
   });
 
   expect(calls[0]).toMatchObject({
-    scope: "result.trace",
+    scope: "trebired.result.trace",
     message: "boom",
   });
   expect(calls[0]?.meta).toMatchObject({
@@ -88,7 +88,7 @@ test("routes logger output through loggerAdapter writers", () => {
   });
 
   expect(rows[0]).toMatchObject({
-    group: "result.trace",
+    group: "trebired.result.trace",
     level: "error",
     message: "adapter boom",
   });
