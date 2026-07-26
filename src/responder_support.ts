@@ -21,6 +21,7 @@ import type {
   ResultResponderConfig,
   ResultRespondOptions,
 } from "#types";
+import { buildPackageLogGroup } from "./package-metadata.js";
 
 const FALLBACK_ERROR_STATUS_CODES: Record<number, string> = {
   400: "bad-request",
@@ -34,6 +35,7 @@ const FALLBACK_ERROR_STATUS_CODES: Record<number, string> = {
   503: "unavailable",
   504: "gateway-timeout",
 };
+const RESULT_RESPONDER_LOG_GROUP = buildPackageLogGroup("responder");
 
 function shapeResultPayload<Ctx = unknown, TType extends string = string>(
   resultLike: ResultLike | null | undefined,
@@ -253,7 +255,7 @@ function handleRenderFailure<Ctx = unknown, TType extends string = string>(
   model: ResultRenderModel<TType>,
   error: unknown,
 ) {
-  logger?.error("package.result.responder", "render-failed", {
+  logger?.error(RESULT_RESPONDER_LOG_GROUP, "render-failed", {
     level: model.level,
     status: model.status,
     type: model.type || null,

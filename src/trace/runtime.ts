@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 import { resolveLogger } from "#9u38bvr71ysb";
 import { mergeMetadata } from "#shared";
+import { RESULT_TRACE_LOG_GROUP } from "./utils.js";
 import type {
   ResultTraceConfig,
   ResultTraceRecord,
@@ -164,7 +165,7 @@ function emitTraceRecord(
   }
 
   runTraceSideEffect(() => selectTraceMethod(logger, record.severity)(
-    "package.result.trace",
+    RESULT_TRACE_LOG_GROUP,
     record.message,
     buildTraceMeta(record),
   ));

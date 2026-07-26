@@ -52,6 +52,9 @@
       "#shared": [
         "../../src/shared.ts"
       ],
+      "#ta293zk8h1c4": [
+        "../../src/package-metadata.ts"
+      ],
       "#types": [
         "../../src/types.ts"
       ],

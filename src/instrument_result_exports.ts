@@ -1,9 +1,12 @@
 import { createResultTraceRuntime, getCachedEntry, readTracerRuntime, setCachedEntry } from "./trace/runtime.js";
 import { isPlainObject, matchTraceTarget, normalizeTraceLabel } from "./trace/utils.js";
 import { wrapResultFunctionWithRuntime } from "./wrap/result/function.js";
+import { buildPackageLogGroup } from "./package-metadata.js";
 import type {
   InstrumentResultExportsOptions,
 } from "./trace/types.js";
+
+const RESULT_EXPORTS_TRACE_LABEL = buildPackageLogGroup("exports");
 
 function instrumentResultExports<T>(
   target: T,
@@ -18,7 +21,7 @@ function instrumentResultExportsWithRuntime<T>(
   target: T,
   options: InstrumentResultExportsOptions = {},
 ): T {
-  const label = normalizeTraceLabel(options.label, "package.result.exports");
+  const label = normalizeTraceLabel(options.label, RESULT_EXPORTS_TRACE_LABEL);
   const depth = resolveDepth(runtime, options.depth);
   return instrumentValue(runtime, target, label, depth, options) as T;
 }

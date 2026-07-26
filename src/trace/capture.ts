@@ -1,5 +1,13 @@
 import { normalizeResultStatusCode } from "#shared";
-import { captureCallSite, isFailedResultLike, normalizeThrownValue, normalizeTraceLabel, previewCallArguments, summarizeFailedResult } from "./utils.js";
+import {
+  captureCallSite,
+  isFailedResultLike,
+  normalizeThrownValue,
+  normalizeTraceLabel,
+  previewCallArguments,
+  RESULT_TRACE_LOG_GROUP,
+  summarizeFailedResult,
+} from "./utils.js";
 import { createResultTraceRuntime } from "./runtime.js";
 import type { ResultTraceContextInput, ResultTraceKind, ResultTraceRecord } from "./types.js";
 import type { ResultLike } from "#types";
@@ -51,7 +59,7 @@ function emitTraceRecord(
   options: ResultTraceContextInput,
   severity: ResultTraceRecord["severity"],
 ): ResultTraceRecord | null {
-  const label = normalizeTraceLabel(options.label || runtime.getTraceStack().slice(-1)[0], "package.result.trace");
+  const label = normalizeTraceLabel(options.label || runtime.getTraceStack().slice(-1)[0], RESULT_TRACE_LOG_GROUP);
   const record: ResultTraceRecord = {
     createdAt: new Date().toISOString(),
     kind,

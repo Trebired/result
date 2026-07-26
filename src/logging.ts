@@ -2,6 +2,7 @@ import {
   resolveLogger as resolveSharedLogger,
 } from "@package/logger-adapter";
 
+import { PACKAGE_NAME } from "./package-metadata.js";
 import type {
   NormalizedResultLogger,
   ResultLogger,
@@ -20,7 +21,7 @@ function resolveLogger(
     adapter,
     fallback: "console",
     logger,
-    source: "@package/result",
+    source: PACKAGE_NAME,
   }) as NormalizedResultLogger;
 }
 

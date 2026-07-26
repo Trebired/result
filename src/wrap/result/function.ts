@@ -2,10 +2,12 @@ import { traceErrorWithRuntime, traceResultWithRuntime } from "#ovyuo31bgsj9";
 import { createResultTraceRuntime, getCachedEntry, readTracerRuntime, setCachedEntry } from "#0231fmpa2dc7";
 import { normalizeTraceLabel } from "#ypczi4qi4ap6";
 import { isPromiseLike } from "#shared";
+import { buildPackageLogGroup } from "#ta293zk8h1c4";
 import type { WrapResultFunctionOptions } from "#qsb8x4t06m0e";
 import { wrapResultPromiseWithRuntime } from "./promise.js";
 
 const ORIGINAL_FUNCTION_SYMBOL = Symbol.for("@package/result/original-function");
+const RESULT_FUNCTION_TRACE_LABEL = buildPackageLogGroup("function");
 
 function wrapResultFunction<Fn extends (...args: any[]) => any>(
   fn: Fn,
@@ -21,7 +23,7 @@ function wrapResultFunctionWithRuntime<Fn extends (...args: any[]) => any>(
   options: WrapResultFunctionOptions = {},
 ): Fn {
   const original = unwrapFunction(fn);
-  const label = normalizeTraceLabel(options.label || original.name, "package.result.function");
+  const label = normalizeTraceLabel(options.label || original.name, RESULT_FUNCTION_TRACE_LABEL);
   const cached = getCachedEntry(runtime.functionCache, original, label);
 
   if (cached) {
@@ -77,13 +79,34 @@ function createArityWrapper(
   invoke: (this: unknown, args: unknown[]) => unknown,
 ): (...args: unknown[]) => unknown {
   switch (Math.max(0, Math.min(length, 6))) {
-    case 0: return function resultWrapper0(this: unknown) { return invoke.call(this, []); };
-    case 1: return function resultWrapper1(this: unknown, a: unknown) { return invoke.call(this, [a]); };
-    case 2: return function resultWrapper2(this: unknown, a: unknown, b: unknown) { return invoke.call(this, [a, b]); };
-    case 3: return function resultWrapper3(this: unknown, a: unknown, b: unknown, c: unknown) { return invoke.call(this, [a, b, c]); };
-    case 4: return function resultWrapper4(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown) { return invoke.call(this, [a, b, c, d]); };
-    case 5: return function resultWrapper5(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown) { return invoke.call(this, [a, b, c, d, e]); };
-    default: return function resultWrapper6(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown, f: unknown) { return invoke.call(this, [a, b, c, d, e, f]); };
+    case 0:
+      return function resultWrapper0(this: unknown) {
+        return invoke.call(this, []);
+      };
+    case 1:
+      return function resultWrapper1(this: unknown, a: unknown) {
+        return invoke.call(this, [a]);
+      };
+    case 2:
+      return function resultWrapper2(this: unknown, a: unknown, b: unknown) {
+        return invoke.call(this, [a, b]);
+      };
+    case 3:
+      return function resultWrapper3(this: unknown, a: unknown, b: unknown, c: unknown) {
+        return invoke.call(this, [a, b, c]);
+      };
+    case 4:
+      return function resultWrapper4(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown) {
+        return invoke.call(this, [a, b, c, d]);
+      };
+    case 5:
+      return function resultWrapper5(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown) {
+        return invoke.call(this, [a, b, c, d, e]);
+      };
+    default:
+      return function resultWrapper6(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown, f: unknown) {
+        return invoke.call(this, [a, b, c, d, e, f]);
+      };
   }
 }
 

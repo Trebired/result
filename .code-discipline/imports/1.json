@@ -16,6 +16,7 @@
   "#responder": "./src/responder.ts",
   "#result": "./src/result.ts",
   "#shared": "./src/shared.ts",
+  "#ta293zk8h1c4": "./src/package-metadata.ts",
   "#types": "./src/types.ts",
   "#ypczi4qi4ap6": "./src/trace/utils.ts",
   "#yx1thbjr1hr9": "./scripts/verify-pack.mjs"

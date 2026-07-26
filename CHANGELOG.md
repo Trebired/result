@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2
+
+- Added package-owned organization metadata and derived result responder and trace log groups from `package.json`.
+- Updated internal package dependency ranges to the current sibling package releases.
+
 ## 1.1.1
 
 - Changed the generic error builder to `result.error(status_code, status, payload)` so custom HTTP statuses read consistently.

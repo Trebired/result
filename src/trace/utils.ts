@@ -4,6 +4,7 @@ import {
   normalizeResultStatusCode,
   toResultStatus,
 } from "#shared";
+import { buildPackageLogGroup } from "#ta293zk8h1c4";
 import type {
   ResultTraceCallSite,
   ResultTraceFailureSummary,
@@ -13,8 +14,9 @@ import type {
 import type { ResultLike } from "#types";
 
 const STACK_LINE_PREFIX = /^\s*at\s+/u;
+const RESULT_TRACE_LOG_GROUP = buildPackageLogGroup("trace");
 
-function normalizeTraceLabel(input: unknown, fallback = "package.result.trace"): string {
+function normalizeTraceLabel(input: unknown, fallback = RESULT_TRACE_LOG_GROUP): string {
   const label = typeof input === "string" ? input.trim() : "";
   return label || fallback;
 }
@@ -207,6 +209,7 @@ export {
   isFailedResultLike,
   isPlainObject,
   matchTraceTarget,
+  RESULT_TRACE_LOG_GROUP,
   normalizeThrownValue,
   normalizeTraceLabel,
   previewCallArguments,

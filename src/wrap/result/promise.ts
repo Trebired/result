@@ -1,9 +1,11 @@
 import { traceErrorWithRuntime, traceResultWithRuntime } from "#ovyuo31bgsj9";
 import { createResultTraceRuntime, getCachedEntry, readTracerRuntime, setCachedEntry } from "#0231fmpa2dc7";
 import { captureCallSite, normalizeTraceLabel } from "#ypczi4qi4ap6";
+import { buildPackageLogGroup } from "#ta293zk8h1c4";
 import type { WrapResultPromiseOptions } from "#qsb8x4t06m0e";
 
 const ORIGINAL_PROMISE_SYMBOL = Symbol.for("@package/result/original-promise");
+const RESULT_PROMISE_TRACE_LABEL = buildPackageLogGroup("promise");
 
 function wrapResultPromise<T>(
   promise: Promise<T>,
@@ -19,7 +21,7 @@ function wrapResultPromiseWithRuntime<T>(
   options: WrapResultPromiseOptions = {},
 ): Promise<T> {
   const original = unwrapPromise(promise);
-  const label = normalizeTraceLabel(options.label, "package.result.promise");
+  const label = normalizeTraceLabel(options.label, RESULT_PROMISE_TRACE_LABEL);
   const source = options.source || captureCallSite(undefined, runtime.config.stackDepth).site;
   const cached = getCachedEntry(runtime.promiseCache, original, label);
 
