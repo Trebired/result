@@ -1,4 +1,4 @@
-import { normalizeResultErrorCode } from "#shared";
+import { normalizeResultStatusCode } from "#shared";
 import { captureCallSite, isFailedResultLike, normalizeThrownValue, normalizeTraceLabel, previewCallArguments, summarizeFailedResult } from "./utils.js";
 import { createResultTraceRuntime } from "./runtime.js";
 import type { ResultTraceContextInput, ResultTraceKind, ResultTraceRecord } from "./types.js";
@@ -57,7 +57,7 @@ function emitTraceRecord(
     kind,
     severity: options.severity || severity,
     label,
-    errorCode: normalizeResultErrorCode(options.errorCode) || summary.errorCode,
+    status_code: normalizeResultStatusCode(options.status_code) || summary.status_code,
     status: typeof options.status === "number" ? options.status : summary.status,
     message: typeof options.message === "string" && options.message.trim() ? options.message : summary.message,
     compactStack: summary.compactStack,

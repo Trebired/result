@@ -27,7 +27,7 @@ export interface ResultTraceRecord {
   kind: ResultTraceKind;
   severity: ResultTraceSeverity;
   label: string;
-  errorCode: string;
+  status_code: string;
   status: number | null;
   message: string;
   compactStack: string[];
@@ -48,7 +48,7 @@ export interface ResultTraceContextInput {
   severity?: ResultTraceSeverity;
   status?: number | null;
   message?: string | null;
-  errorCode?: string | null;
+  status_code?: string | null;
 }
 
 export interface ResultTraceConfig {
@@ -66,7 +66,7 @@ export interface ResultTraceConfig {
 }
 
 export interface ResultTraceFailureSummary {
-  errorCode: string;
+  status_code: string;
   status: number | null;
   message: string;
   compactStack: string[];

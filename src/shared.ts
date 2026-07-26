@@ -5,7 +5,7 @@ const RESULT_CORE_KEYS = new Set([
   "error",
   "noop",
   "status",
-  "error_code",
+  "status_code",
   "message",
   "data",
   "details",
@@ -31,7 +31,7 @@ function toResultStatus(input: unknown, fallback: number): number {
   return fallback;
 }
 
-function normalizeResultErrorCode(input: unknown): string {
+function normalizeResultStatusCode(input: unknown): string {
   const current = typeof input === "string" ? input.trim() : "";
 
   if (!current) {
@@ -39,9 +39,7 @@ function normalizeResultErrorCode(input: unknown): string {
   }
 
   return current
-    .replace(/([a-z0-9])([A-Z])/gu, "$1-$2")
-    .replace(/[^A-Za-z0-9-]+/gu, "-")
-    .toLowerCase()
+    .replace(/\s+/gu, "-")
     .replace(/-+/gu, "-")
     .replace(/^-+|-+$/gu, "");
 }
@@ -64,8 +62,8 @@ function normalizeResultLike(resultLike: ResultLike | null | undefined): ResultL
     error: true,
     noop: false,
     status: 500,
-    error_code: "invalid-result",
-    message: "Result payload is invalid.",
+    status_code: "invalid-result",
+    message: true,
     data: null,
   };
 }
@@ -243,7 +241,7 @@ export {
   isObject,
   isPromiseLike,
   mergeMetadata,
-  normalizeResultErrorCode,
+  normalizeResultStatusCode,
   normalizeResultLike,
   toResultStatus,
   typeHierarchy,

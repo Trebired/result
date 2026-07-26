@@ -13,6 +13,17 @@ export type ResultLevel = "ok" | "noop" | "error";
 
 export type ResultMetadata = Record<string, unknown>;
 
+export type ResultBuilderInput<
+  TData = unknown,
+  TDetails = unknown,
+  TMeta extends ResultMetadata = ResultMetadata,
+> = TMeta & {
+  data?: TData;
+  details?: TDetails;
+  message?: boolean;
+  redirect?: string;
+};
+
 export type ResultLogMethod = LoggerAdapterLogMethod;
 export type ResultGenericLogMethod = LoggerAdapterGenericLogMethod;
 export type ResultLogger = LoggerAdapterLogger;
@@ -29,8 +40,8 @@ export type ResultLike<
   error: boolean;
   noop: boolean;
   status: number;
-  error_code: string;
-  message: string;
+  status_code: string;
+  message: boolean;
   data: TData | null;
   details?: TDetails;
   redirect?: string;
@@ -74,7 +85,6 @@ export interface ResultRespondOptions<TType extends string = string> {
   render?: ResultRenderMode;
   type?: TType;
   title?: string;
-  message?: string;
   details?: unknown;
   view?: string;
   meta?: ResultMetadata;
@@ -84,18 +94,29 @@ export interface ResultPayload<
   TData = unknown,
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
-> extends ResultLike<TData, TDetails, TMeta> {}
+> {
+  ok: boolean;
+  error: boolean;
+  noop: boolean;
+  status: number;
+  status_code: string;
+  message: string | null;
+  data: TData | null;
+  details?: TDetails;
+  redirect?: string;
+  meta?: TMeta;
+}
 
 export interface ResultRenderModel<TType extends string = string> {
   level: ResultLevel;
   status: number;
   type: TType | "";
   title: string;
-  message: string;
+  message: string | null;
   view: string | null;
   details: unknown;
   meta: ResultMetadata;
-  error_code: string;
+  status_code: string;
   redirect: string | null;
   payload: ResultPayload;
 }

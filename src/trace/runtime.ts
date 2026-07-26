@@ -142,7 +142,7 @@ function buildTraceMeta(record: ResultTraceRecord) {
   return mergeMetadata({
     kind: record.kind,
     label: record.label,
-    error_code: record.errorCode,
+    status_code: record.status_code,
     status: record.status,
     failure_site: record.failureSite,
     trace_stack: record.traceStack,

@@ -2,6 +2,7 @@ import { resolveLogger } from "./logging.js";
 import {
   buildRenderModel,
   handleRenderFailure,
+  resolvePayloadText,
   shapeResultPayload,
 } from "#fkl0t1n99da1";
 import { isPromiseLike } from "#shared";
@@ -35,7 +36,7 @@ function respond<Ctx = unknown, TType extends string = string>(
   const renderMode = options.render ?? false;
 
   if (renderMode === "text") {
-    return config.sendText(context, payload.status, payload.message);
+    return config.sendText(context, payload.status, resolvePayloadText(payload, options));
   }
 
   if (renderMode === true || renderMode === "auto") {
@@ -46,7 +47,7 @@ function respond<Ctx = unknown, TType extends string = string>(
     }
 
     if (renderMode === true) {
-      return config.sendText(context, payload.status, payload.message);
+      return config.sendText(context, payload.status, resolvePayloadText(payload, options));
     }
   }
 

@@ -20,10 +20,13 @@ Build keyed results:
 import { result } from "@trebired/result";
 
 const missingPassword = result.badRequest("missingPassword", {
+  message: true,
   min: 8,
 });
 
 const writeFailed = result.internal("writeFailed", {
+  message: false,
+  details: { operation: "write" },
   filePath: "/var/data/output.json",
 });
 ```
@@ -44,7 +47,7 @@ const respond = createResponder({
   render: (ctx, model) => ctx.reply.render(model),
 });
 
-return respond(ctx, result.badRequest("missingPassword", { min: 8 }), {
+return respond(ctx, result.badRequest("missingPassword", { message: true, min: 8 }), {
   i18n: authI18n,
   render: "auto",
 });
@@ -57,10 +60,20 @@ The normal builder shape is key-first:
 ```ts
 result.unauthorized("authRequired");
 result.badRequest("missingPassword");
-result.internal("writeFailed", { filePath });
+result.internal("writeFailed", { message: false, filePath });
 ```
 
-The second argument is metadata. The responder uses it as interpolation variables and keeps it on `payload.meta`.
+The first argument is always the app/result/i18n `status_code`. The second argument is a mixed payload object. Reserved fields are `message`, `data`, `details`, and `redirect`; every other field is copied to `meta`.
+
+`message` is a boolean toggle. `true` tells the responder to include a localized user-facing message. `false` suppresses that user-facing message.
+
+```ts
+const loaded = result.ok("user-loaded", {
+  message: true,
+  data: user,
+  count: 3,
+});
+```
 
 The shared result envelope is:
 
@@ -70,8 +83,8 @@ type ResultLike = {
   error: boolean;
   noop: boolean;
   status: number;
-  error_code: string;
-  message: string;
+  status_code: string;
+  message: boolean;
   data: unknown | null;
   details?: unknown;
   redirect?: string;
@@ -79,19 +92,19 @@ type ResultLike = {
 };
 ```
 
-`message` is the stable local key on the raw result. `error_code` is the normalized stable code, for example `missingPassword` becomes `missing-password`. Responder payloads localize `message` while preserving `error_code`.
+Responder payloads preserve `status_code` and shape `message` as a localized string or `null`.
 
 Builder helpers:
 
-- `result.ok(messageKey?, metadata?)`
-- `result.noop(messageKey?, metadata?)`
-- `result.error(status?, messageKey?, metadata?)`
-- `result.badRequest(messageKey?, metadata?)`
-- `result.unauthorized(messageKey?, metadata?)`
-- `result.forbidden(messageKey?, metadata?)`
-- `result.notFound(messageKey?, metadata?)`
-- `result.conflict(messageKey?, metadata?)`
-- `result.internal(messageKey?, metadata?)`
+- `result.ok(status_code?, payload?)`
+- `result.noop(status_code?, payload?)`
+- `result.error(status_code?, payload?, status?)`
+- `result.badRequest(status_code?, payload?)`
+- `result.unauthorized(status_code?, payload?)`
+- `result.forbidden(status_code?, payload?)`
+- `result.notFound(status_code?, payload?)`
+- `result.conflict(status_code?, payload?)`
+- `result.internal(status_code?, payload?)`
 
 ## Local I18n
 
@@ -122,7 +135,7 @@ Translation rules:
 - language comes from `getLanguage(ctx)`
 - lookup uses the explicit `i18n` object passed to `respond`
 - nested dot keys are supported
-- metadata is available for `{name}` and `{{ name }}` interpolation
+- `meta` values are available for `{name}` and `{{ name }}` interpolation
 - the selected language wins when it has the key
 - missing selected-language keys fall back to `en` in the same local bundle
 - missing keys in all bundles return the key itself
@@ -271,7 +284,7 @@ Runtime exports:
 - `resolveResultPreset`
 - `buildResultRenderModePath`
 - `getResultLevel`
-- `normalizeResultErrorCode`
+- `normalizeResultStatusCode`
 - `toResultStatus`
 - `captureCallSite`
 - `compactStack`

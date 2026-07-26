@@ -1,10 +1,15 @@
 # Changelog
 
-- Standardized package metadata ordering and contributing guidance around the Trebired writing style.
+## 1.1.0
+
+- Replaced the old raw result code field with mandatory `status_code` values across builders, responder payloads, and tracing records.
+- Changed builders so the first argument is always the app/result/i18n status code and the second argument splits reserved `message`, `data`, `details`, and `redirect` fields from metadata.
+- Updated responders to localize by `status_code`, return localized `message: string | null`, and use sane text/render fallbacks when messages are disabled.
 
 ## 1.0.3
 
 - Removed dead test scripts and stale test commands from publish workflows and maintainer docs.
+- Standardized package metadata ordering and contributing guidance around the Trebired writing style.
 
 ## 1.0.2
 
@@ -22,7 +27,7 @@
 - Added first-class generic responder support with caller-provided JSON, text, render, and language callbacks.
 - Made result builders key-first, with metadata objects used for interpolation variables and payload metadata.
 - Added explicit local i18n bundle lookup with nested dot keys, Czech/selected-language resolution, English fallback from the provided bundle, and missing-key fallback to the key string.
-- Kept localized payload messages separate from stable normalized result/error codes.
+- Kept localized payload messages separate from stable normalized result status codes.
 - Migrated the package to Code Discipline 4.7 alias-map mode without package.json imports.
 
 ## 0.2.1

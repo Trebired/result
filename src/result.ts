@@ -1,22 +1,24 @@
-import { normalizeResultErrorCode, toResultStatus } from "#shared";
-import type { ResultLike, ResultMetadata } from "#types";
+import { hasOwn, isObject, normalizeResultStatusCode, toResultStatus } from "#shared";
+import type { ResultBuilderInput, ResultLike, ResultMetadata } from "#types";
+
+const RESERVED_RESULT_OPTION_KEYS = new Set(["message", "data", "details", "redirect"]);
 
 function ok<
   TData = unknown,
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "success",
-  meta?: TMeta,
+  status_code = "success",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
     ok: true,
     error: false,
     noop: false,
     status: 200,
-    error_code: "",
-    message,
-    meta,
+    status_code,
+    fallbackStatusCode: "success",
+    input,
   });
 }
 
@@ -25,17 +27,17 @@ function noop<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "noop",
-  meta?: TMeta,
+  status_code = "noop",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
     ok: true,
     error: false,
     noop: true,
     status: 200,
-    error_code: normalizeResultErrorCode(message) || "noop",
-    message,
-    meta,
+    status_code,
+    fallbackStatusCode: "noop",
+    input,
   });
 }
 
@@ -44,18 +46,18 @@ function error<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
+  status_code = "failed",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
   status = 400,
-  message = "failed",
-  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
     ok: false,
     error: true,
     noop: false,
     status: toResultStatus(status, 400),
-    error_code: normalizeResultErrorCode(message) || "failed",
-    message,
-    meta,
+    status_code,
+    fallbackStatusCode: "failed",
+    input,
   });
 }
 
@@ -64,10 +66,10 @@ function badRequest<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "badRequest",
-  meta?: TMeta,
+  status_code = "bad-request",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(400, message, meta);
+  return error(status_code, input, 400);
 }
 
 function unauthorized<
@@ -75,10 +77,10 @@ function unauthorized<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "unauthorized",
-  meta?: TMeta,
+  status_code = "unauthorized",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(401, message, meta);
+  return error(status_code, input, 401);
 }
 
 function forbidden<
@@ -86,10 +88,10 @@ function forbidden<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "forbidden",
-  meta?: TMeta,
+  status_code = "forbidden",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(403, message, meta);
+  return error(status_code, input, 403);
 }
 
 function notFound<
@@ -97,10 +99,10 @@ function notFound<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "notFound",
-  meta?: TMeta,
+  status_code = "not-found",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(404, message, meta);
+  return error(status_code, input, 404);
 }
 
 function conflict<
@@ -108,10 +110,10 @@ function conflict<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "conflict",
-  meta?: TMeta,
+  status_code = "conflict",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(409, message, meta);
+  return error(status_code, input, 409);
 }
 
 function internal<
@@ -119,10 +121,10 @@ function internal<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "internalError",
-  meta?: TMeta,
+  status_code = "internal-error",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(500, message, meta);
+  return error(status_code, input, 500);
 }
 
 const result = {
@@ -146,33 +148,55 @@ function createResult<
   error,
   noop,
   status,
-  error_code,
-  message,
-  meta,
+  status_code,
+  fallbackStatusCode,
+  input,
 }: {
   ok: boolean;
   error: boolean;
   noop: boolean;
   status: number;
-  error_code: string;
-  message: string;
-  meta?: TMeta;
+  status_code: string;
+  fallbackStatusCode: string;
+  input?: ResultBuilderInput<TData, TDetails, TMeta>;
 }): ResultLike<TData, TDetails, TMeta> {
+  const options: Record<string, unknown> = isObject(input) ? input : {};
   const out: ResultLike<TData, TDetails, TMeta> = {
     ok,
     error,
     noop,
     status,
-    error_code,
-    message,
-    data: null,
+    status_code: normalizeResultStatusCode(status_code) || fallbackStatusCode,
+    message: typeof options.message === "boolean" ? options.message : true,
+    data: hasOwn(options, "data") ? ((options.data as TData | null | undefined) ?? null) : null,
   };
 
-  if (meta && Object.keys(meta).length > 0) {
+  if (hasOwn(options, "details") && options.details !== undefined) {
+    out.details = options.details as TDetails;
+  }
+
+  if (typeof options.redirect === "string" && options.redirect.length > 0) {
+    out.redirect = options.redirect;
+  }
+
+  const meta = extractBuilderMeta(options) as TMeta;
+  if (Object.keys(meta).length > 0) {
     out.meta = meta;
   }
 
   return out;
+}
+
+function extractBuilderMeta(input: Record<string, unknown>): ResultMetadata {
+  const meta: ResultMetadata = {};
+
+  for (const [key, value] of Object.entries(input)) {
+    if (!RESERVED_RESULT_OPTION_KEYS.has(key)) {
+      meta[key] = value;
+    }
+  }
+
+  return meta;
 }
 
 export {

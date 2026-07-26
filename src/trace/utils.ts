@@ -1,7 +1,7 @@
 import {
   getResultLevel,
   isObject,
-  normalizeResultErrorCode,
+  normalizeResultStatusCode,
   toResultStatus,
 } from "#shared";
 import type {
@@ -56,7 +56,7 @@ function normalizeThrownValue(
   const source = isObject(value) ? value as Record<string, unknown> : null;
 
   return {
-    errorCode: normalizeResultErrorCode(source?.error_code || source?.code) || "thrown-error",
+    status_code: normalizeResultStatusCode(source?.status_code) || "thrown-error",
     status: Number.isFinite(Number(source?.status)) ? toResultStatus(source?.status, 500) : null,
     message: readThrownMessage(value),
     compactStack: captured.stack,
@@ -74,9 +74,9 @@ function summarizeFailedResult(
 ): ResultTraceFailureSummary {
   const captured = captureCallSite(result.stack, stackDepth);
   return {
-    errorCode: normalizeResultErrorCode(result.error_code) || "failed",
+    status_code: normalizeResultStatusCode(result.status_code) || "failed",
     status: Number.isFinite(Number(result.status)) ? toResultStatus(result.status, 500) : null,
-    message: typeof result.message === "string" && result.message.trim() ? result.message : "Result failed.",
+    message: normalizeResultStatusCode(result.status_code) || "Result failed.",
     compactStack: captured.stack,
     failureSite: captured.site,
     metadataSummary: isObject(result.meta) ? previewValue(result.meta, preview) : null,

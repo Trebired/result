@@ -39,7 +39,7 @@ export {
 export {
   buildResultRenderModePath,
   getResultLevel,
-  normalizeResultErrorCode,
+  normalizeResultStatusCode,
   toResultStatus,
 } from "#shared";
 export {

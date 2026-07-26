@@ -1,5 +1,4 @@
 import {
-  defaultResultMessage,
   defaultResultTitle,
   defaultTextFallback,
   extractResultExtras,
@@ -8,7 +7,7 @@ import {
   hasOwn,
   isObject,
   mergeMetadata,
-  normalizeResultErrorCode,
+  normalizeResultStatusCode,
   normalizeResultLike,
   toResultStatus,
 } from "#shared";
@@ -38,7 +37,7 @@ function shapeResultPayload<Ctx = unknown, TType extends string = string>(
     error: level === "error" ? result.error !== false : false,
     noop: level === "noop",
     status,
-    error_code: resolveErrorCode(level, status, result),
+    status_code: resolveStatusCode(level, status, result),
     message: resolveLocalizedMessage(result, config, context, options, meta),
     data: hasOwn(result, "data") ? (result.data ?? null) : null,
   };
@@ -70,13 +69,13 @@ function buildRenderModel<TType extends string = string>(
   return {
     level,
     status: payload.status,
+    status_code: payload.status_code,
     type,
     title,
     message: payload.message,
     view: resolveView(options),
     details: hasOwn(payload, "details") ? payload.details : options.details,
     meta: mergeMetadata(isObject(payload.meta) ? payload.meta : null, options.meta),
-    error_code: payload.error_code,
     redirect: typeof payload.redirect === "string" && payload.redirect.length > 0 ? payload.redirect : null,
     payload,
   };
@@ -88,16 +87,12 @@ function resolveLocalizedMessage<Ctx = unknown, TType extends string = string>(
   context: Ctx,
   options: ResultRespondOptions<TType>,
   meta: ResultMetadata,
-): string {
-  if (typeof options.message === "string" && options.message.trim()) {
-    return interpolateMessage(options.message, meta);
+): string | null {
+  if (result.message !== true) {
+    return null;
   }
 
-  const key = typeof result.message === "string" && result.message.trim()
-    ? result.message
-    : defaultResultMessage(getResultLevel(result), result.status);
-
-  return translateMessage(key, {
+  return translateMessage(resolveStatusCode(getResultLevel(result), result.status, result), {
     bundle: options.i18n,
     language: config.getLanguage?.(context),
     variables: meta,
@@ -188,8 +183,8 @@ function lookupVariable(variables: ResultMetadata, key: string): unknown {
   return current;
 }
 
-function resolveErrorCode(level: "ok" | "noop" | "error", status: number, result: ResultLike): string {
-  const normalized = normalizeResultErrorCode(result.error_code);
+function resolveStatusCode(level: "ok" | "noop" | "error", status: number, result: ResultLike): string {
+  const normalized = normalizeResultStatusCode(result.status_code);
 
   if (normalized) {
     return normalized;
@@ -200,11 +195,31 @@ function resolveErrorCode(level: "ok" | "noop" | "error", status: number, result
   }
 
   if (level === "ok") {
-    return "";
+    return "success";
   }
 
   if (status === 404) {
     return "not-found";
+  }
+
+  if (status === 400) {
+    return "bad-request";
+  }
+
+  if (status === 401) {
+    return "unauthorized";
+  }
+
+  if (status === 403) {
+    return "forbidden";
+  }
+
+  if (status === 409) {
+    return "conflict";
+  }
+
+  if (status >= 500) {
+    return "internal-error";
   }
 
   return "failed";
@@ -224,6 +239,18 @@ function resolveTitle<TType extends string>(
 
 function resolveView<TType extends string>(options: ResultRespondOptions<TType>): string | null {
   return typeof options.view === "string" && options.view.trim() ? options.view : null;
+}
+
+function resolvePayloadText<TType extends string = string>(
+  payload: ResultPayload,
+  options: ResultRespondOptions<TType> = {},
+): string {
+  if (payload.message) {
+    return payload.message;
+  }
+
+  const model = buildRenderModel(payload, options);
+  return defaultTextFallback(model.level, model.status, model.title);
 }
 
 function handleRenderFailure<Ctx = unknown, TType extends string = string>(
@@ -249,6 +276,7 @@ export {
   buildRenderModel,
   handleRenderFailure,
   interpolateMessage,
+  resolvePayloadText,
   shapeResultPayload,
   translateMessage,
 };
