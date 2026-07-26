@@ -63,6 +63,31 @@ const DEFAULT_RESULT_PRESETS: ResultPresetMap = {
         title: "Conflict",
         message: "The request conflicts with the current resource state.",
       },
+      "422": {
+        status: 422,
+        title: "Unprocessable Entity",
+        message: "The request data could not be processed.",
+      },
+      "429": {
+        status: 429,
+        title: "Too Many Requests",
+        message: "Too many requests.",
+      },
+      "502": {
+        status: 502,
+        title: "Bad Gateway",
+        message: "The upstream service returned an invalid response.",
+      },
+      "503": {
+        status: 503,
+        title: "Service Unavailable",
+        message: "The service is temporarily unavailable.",
+      },
+      "504": {
+        status: 504,
+        title: "Gateway Timeout",
+        message: "The upstream service did not respond in time.",
+      },
     },
   },
 };

@@ -22,6 +22,19 @@ import type {
   ResultRespondOptions,
 } from "#types";
 
+const FALLBACK_ERROR_STATUS_CODES: Record<number, string> = {
+  400: "bad-request",
+  401: "unauthorized",
+  403: "forbidden",
+  404: "not-found",
+  409: "conflict",
+  422: "unprocessable-entity",
+  429: "too-many-requests",
+  502: "bad-gateway",
+  503: "unavailable",
+  504: "gateway-timeout",
+};
+
 function shapeResultPayload<Ctx = unknown, TType extends string = string>(
   resultLike: ResultLike | null | undefined,
   config: ResultResponderConfig<Ctx, TType>,
@@ -198,31 +211,11 @@ function resolveStatusCode(level: "ok" | "noop" | "error", status: number, resul
     return "success";
   }
 
-  if (status === 404) {
-    return "not-found";
-  }
-
-  if (status === 400) {
-    return "bad-request";
-  }
-
-  if (status === 401) {
-    return "unauthorized";
-  }
-
-  if (status === 403) {
-    return "forbidden";
-  }
-
-  if (status === 409) {
-    return "conflict";
-  }
-
   if (status >= 500) {
-    return "internal-error";
+    return FALLBACK_ERROR_STATUS_CODES[status] || "internal-error";
   }
 
-  return "failed";
+  return FALLBACK_ERROR_STATUS_CODES[status] || "failed";
 }
 
 function resolveTitle<TType extends string>(

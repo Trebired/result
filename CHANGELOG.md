@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- Changed the generic error builder to `result.error(status_code, status, payload)` so custom HTTP statuses read consistently.
+- Added status helper builders for unprocessable entity, rate limiting, upstream failures, unavailable services, and gateway timeouts.
+
 ## 1.1.0
 
 - Replaced the old raw result code field with mandatory `status_code` values across builders, responder payloads, and tracing records.

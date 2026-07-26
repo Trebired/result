@@ -1,13 +1,18 @@
 export {
   badRequest,
+  badGateway,
   conflict,
   error,
   forbidden,
+  gatewayTimeout,
   internal,
   noop,
   notFound,
   ok,
   result,
+  tooManyRequests,
+  unavailable,
+  unprocessable,
   unauthorized,
 } from "#result";
 export {

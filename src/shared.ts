@@ -13,6 +13,32 @@ const RESULT_CORE_KEYS = new Set([
   "meta",
 ]);
 
+const DEFAULT_ERROR_TITLES: Record<number, string> = {
+  400: "Bad request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not Found",
+  409: "Conflict",
+  422: "Unprocessable Entity",
+  429: "Too Many Requests",
+  502: "Bad Gateway",
+  503: "Service Unavailable",
+  504: "Gateway Timeout",
+};
+
+const DEFAULT_ERROR_MESSAGES: Record<number, string> = {
+  400: "The request could not be completed.",
+  401: "You must sign in to continue.",
+  403: "You do not have access to this resource.",
+  404: "The requested resource does not exist.",
+  409: "The request conflicts with the current resource state.",
+  422: "The request data could not be processed.",
+  429: "Too many requests.",
+  502: "The upstream service returned an invalid response.",
+  503: "The service is temporarily unavailable.",
+  504: "The upstream service did not respond in time.",
+};
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
@@ -137,27 +163,7 @@ function defaultResultTitle(level: ResultLevel, status: number): string {
     return "No changes";
   }
 
-  if (status === 400) {
-    return "Bad request";
-  }
-
-  if (status === 401) {
-    return "Unauthorized";
-  }
-
-  if (status === 403) {
-    return "Forbidden";
-  }
-
-  if (status === 404) {
-    return "Not Found";
-  }
-
-  if (status === 409) {
-    return "Conflict";
-  }
-
-  return "Oops..";
+  return DEFAULT_ERROR_TITLES[status] || "Oops..";
 }
 
 function defaultResultMessage(level: ResultLevel, status: number): string {
@@ -169,27 +175,7 @@ function defaultResultMessage(level: ResultLevel, status: number): string {
     return "No changes were needed.";
   }
 
-  if (status === 400) {
-    return "The request could not be completed.";
-  }
-
-  if (status === 401) {
-    return "You must sign in to continue.";
-  }
-
-  if (status === 403) {
-    return "You do not have access to this resource.";
-  }
-
-  if (status === 404) {
-    return "The requested resource does not exist.";
-  }
-
-  if (status === 409) {
-    return "The request conflicts with the current resource state.";
-  }
-
-  return "Something went wrong.";
+  return DEFAULT_ERROR_MESSAGES[status] || "Something went wrong.";
 }
 
 function defaultTextFallback(level: ResultLevel, status: number, title: string): string {
@@ -211,6 +197,14 @@ function defaultTextFallback(level: ResultLevel, status: number, title: string):
 
   if (status === 401) {
     return "Unauthorized";
+  }
+
+  if (status === 429) {
+    return "Too Many Requests";
+  }
+
+  if (status === 503) {
+    return "Service Unavailable";
   }
 
   return title || "Internal Server Error";

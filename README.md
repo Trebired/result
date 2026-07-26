@@ -60,6 +60,10 @@ The normal builder shape is key-first:
 ```ts
 result.unauthorized("authRequired");
 result.badRequest("missingPassword");
+result.tooManyRequests("too-many-login-attempts");
+result.badGateway("update-check-failed");
+result.unavailable("platform-unavailable");
+result.error("custom-weird-failure", 418, { data });
 result.internal("writeFailed", { message: false, filePath });
 ```
 
@@ -98,12 +102,17 @@ Builder helpers:
 
 - `result.ok(status_code?, payload?)`
 - `result.noop(status_code?, payload?)`
-- `result.error(status_code?, payload?, status?)`
+- `result.error(status_code?, status?, payload?)`
 - `result.badRequest(status_code?, payload?)`
 - `result.unauthorized(status_code?, payload?)`
 - `result.forbidden(status_code?, payload?)`
 - `result.notFound(status_code?, payload?)`
 - `result.conflict(status_code?, payload?)`
+- `result.unprocessable(status_code?, payload?)`
+- `result.tooManyRequests(status_code?, payload?)`
+- `result.badGateway(status_code?, payload?)`
+- `result.unavailable(status_code?, payload?)`
+- `result.gatewayTimeout(status_code?, payload?)`
 - `result.internal(status_code?, payload?)`
 
 ## Local I18n
@@ -263,10 +272,15 @@ Runtime exports:
 - `noop`
 - `error`
 - `badRequest`
+- `badGateway`
 - `unauthorized`
 - `forbidden`
 - `notFound`
 - `conflict`
+- `unprocessable`
+- `tooManyRequests`
+- `unavailable`
+- `gatewayTimeout`
 - `internal`
 - `createResponder`
 - `respond`

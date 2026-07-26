@@ -47,8 +47,8 @@ function error<
   TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "failed",
-  input?: ResultBuilderInput<TData, TDetails, TMeta>,
   status = 400,
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
     ok: false,
@@ -69,7 +69,7 @@ function badRequest<
   status_code = "bad-request",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(status_code, input, 400);
+  return error(status_code, 400, input);
 }
 
 function unauthorized<
@@ -80,7 +80,7 @@ function unauthorized<
   status_code = "unauthorized",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(status_code, input, 401);
+  return error(status_code, 401, input);
 }
 
 function forbidden<
@@ -91,7 +91,7 @@ function forbidden<
   status_code = "forbidden",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(status_code, input, 403);
+  return error(status_code, 403, input);
 }
 
 function notFound<
@@ -102,7 +102,7 @@ function notFound<
   status_code = "not-found",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(status_code, input, 404);
+  return error(status_code, 404, input);
 }
 
 function conflict<
@@ -113,7 +113,62 @@ function conflict<
   status_code = "conflict",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(status_code, input, 409);
+  return error(status_code, 409, input);
+}
+
+function unprocessable<
+  TData = unknown,
+  TDetails = unknown,
+  TMeta extends ResultMetadata = ResultMetadata,
+>(
+  status_code = "unprocessable-entity",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
+): ResultLike<TData, TDetails, TMeta> {
+  return error(status_code, 422, input);
+}
+
+function tooManyRequests<
+  TData = unknown,
+  TDetails = unknown,
+  TMeta extends ResultMetadata = ResultMetadata,
+>(
+  status_code = "too-many-requests",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
+): ResultLike<TData, TDetails, TMeta> {
+  return error(status_code, 429, input);
+}
+
+function badGateway<
+  TData = unknown,
+  TDetails = unknown,
+  TMeta extends ResultMetadata = ResultMetadata,
+>(
+  status_code = "bad-gateway",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
+): ResultLike<TData, TDetails, TMeta> {
+  return error(status_code, 502, input);
+}
+
+function unavailable<
+  TData = unknown,
+  TDetails = unknown,
+  TMeta extends ResultMetadata = ResultMetadata,
+>(
+  status_code = "unavailable",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
+): ResultLike<TData, TDetails, TMeta> {
+  return error(status_code, 503, input);
+}
+
+function gatewayTimeout<
+  TData = unknown,
+  TDetails = unknown,
+  TMeta extends ResultMetadata = ResultMetadata,
+>(
+  status_code = "gateway-timeout",
+  input?: ResultBuilderInput<TData, TDetails, TMeta>,
+): ResultLike<TData, TDetails, TMeta> {
+  return error(status_code, 504, input);
 }
 
 function internal<
@@ -124,7 +179,7 @@ function internal<
   status_code = "internal-error",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(status_code, input, 500);
+  return error(status_code, 500, input);
 }
 
 const result = {
@@ -136,6 +191,11 @@ const result = {
   forbidden,
   notFound,
   conflict,
+  unprocessable,
+  tooManyRequests,
+  badGateway,
+  unavailable,
+  gatewayTimeout,
   internal,
 } as const;
 
@@ -201,13 +261,18 @@ function extractBuilderMeta(input: Record<string, unknown>): ResultMetadata {
 
 export {
   badRequest,
+  badGateway,
   conflict,
   error,
   forbidden,
+  gatewayTimeout,
   internal,
   noop,
   notFound,
   ok,
   result,
+  tooManyRequests,
+  unavailable,
+  unprocessable,
   unauthorized,
 };
