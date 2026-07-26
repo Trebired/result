@@ -233,7 +233,7 @@ function handleRenderFailure<Ctx = unknown, TType extends string = string>(
   model: ResultRenderModel<TType>,
   error: unknown,
 ) {
-  logger?.error("trebired.result.responder", "render-failed", {
+  logger?.error("package.result.responder", "render-failed", {
     level: model.level,
     status: model.status,
     type: model.type || null,

@@ -14,7 +14,7 @@ import type { ResultLike } from "#types";
 
 const STACK_LINE_PREFIX = /^\s*at\s+/u;
 
-function normalizeTraceLabel(input: unknown, fallback = "trebired.result.trace"): string {
+function normalizeTraceLabel(input: unknown, fallback = "package.result.trace"): string {
   const label = typeof input === "string" ? input.trim() : "";
   return label || fallback;
 }

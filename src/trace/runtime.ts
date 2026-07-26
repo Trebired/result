@@ -8,7 +8,7 @@ import type {
   ResultTracer,
 } from "./types.js";
 
-const RESULT_TRACER_RUNTIME_SYMBOL = Symbol.for("@trebired/result/runtime");
+const RESULT_TRACER_RUNTIME_SYMBOL = Symbol.for("@package/result/runtime");
 
 const DEFAULT_TRACE_CONFIG = {
   enabled: true,
@@ -164,7 +164,7 @@ function emitTraceRecord(
   }
 
   runTraceSideEffect(() => selectTraceMethod(logger, record.severity)(
-    "trebired.result.trace",
+    "package.result.trace",
     record.message,
     buildTraceMeta(record),
   ));

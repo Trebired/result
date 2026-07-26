@@ -3,7 +3,7 @@ import { createResultTraceRuntime, getCachedEntry, readTracerRuntime, setCachedE
 import { captureCallSite, normalizeTraceLabel } from "#ypczi4qi4ap6";
 import type { WrapResultPromiseOptions } from "#qsb8x4t06m0e";
 
-const ORIGINAL_PROMISE_SYMBOL = Symbol.for("@trebired/result/original-promise");
+const ORIGINAL_PROMISE_SYMBOL = Symbol.for("@package/result/original-promise");
 
 function wrapResultPromise<T>(
   promise: Promise<T>,
@@ -19,7 +19,7 @@ function wrapResultPromiseWithRuntime<T>(
   options: WrapResultPromiseOptions = {},
 ): Promise<T> {
   const original = unwrapPromise(promise);
-  const label = normalizeTraceLabel(options.label, "trebired.result.promise");
+  const label = normalizeTraceLabel(options.label, "package.result.promise");
   const source = options.source || captureCallSite(undefined, runtime.config.stackDepth).site;
   const cached = getCachedEntry(runtime.promiseCache, original, label);
 

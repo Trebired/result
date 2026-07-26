@@ -18,7 +18,7 @@ function instrumentResultExportsWithRuntime<T>(
   target: T,
   options: InstrumentResultExportsOptions = {},
 ): T {
-  const label = normalizeTraceLabel(options.label, "trebired.result.exports");
+  const label = normalizeTraceLabel(options.label, "package.result.exports");
   const depth = resolveDepth(runtime, options.depth);
   return instrumentValue(runtime, target, label, depth, options) as T;
 }

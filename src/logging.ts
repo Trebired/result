@@ -1,6 +1,6 @@
 import {
   resolveLogger as resolveSharedLogger,
-} from "@trebired/logger-adapter";
+} from "@package/logger-adapter";
 
 import type {
   NormalizedResultLogger,
@@ -20,7 +20,7 @@ function resolveLogger(
     adapter,
     fallback: "console",
     logger,
-    source: "@trebired/result",
+    source: "@package/result",
   }) as NormalizedResultLogger;
 }
 

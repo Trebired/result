@@ -8,7 +8,7 @@ const tempRoot = path.join(rootDir, ".tmp", "verify-pack");
 const npmCacheDir = path.join(tempRoot, "npm-cache");
 const packageJsonBackupPath = path.join(rootDir, ".tmp", "package.json.backup");
 const nodeTypesDir = path.join(rootDir, "node_modules", "@types", "node");
-const loggerAdapterDir = path.join(rootDir, "node_modules", "@trebired", "logger-adapter");
+const loggerAdapterDir = path.join(rootDir, "node_modules", "@package", "logger-adapter");
 const tscBin = path.join(rootDir, "node_modules", "typescript", "bin", "tsc");
 
 async function main() {
@@ -178,8 +178,8 @@ async function writeConsumerManifest(consumerDir, tarballPath) {
     private: true,
     type: "module",
     dependencies: {
-      "@trebired/logger-adapter": `file:${loggerAdapterDir}`,
-      "@trebired/result": `file:${tarballPath}`,
+      "@package/logger-adapter": `file:${loggerAdapterDir}`,
+      "@package/result": `file:${tarballPath}`,
     },
     devDependencies: {
       "@types/node": `file:${nodeTypesDir}`,
@@ -189,7 +189,7 @@ async function writeConsumerManifest(consumerDir, tarballPath) {
 
 async function writeConsumerTypecheckFixture(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "index.ts"), [
-    'import { createResponder, createResultTracer, result } from "@trebired/result";',
+    'import { createResponder, createResultTracer, result } from "@package/result";',
     "",
     "const tracer = createResultTracer();",
     "const respond = createResponder({",
@@ -213,7 +213,7 @@ async function writeConsumerTypecheckFixture(consumerDir) {
 
 async function writeConsumerRuntimeFixture(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "runtime.mjs"), [
-    'import { DEFAULT_RESULT_PRESETS, createResultTracer, resolveResultPreset, result } from "@trebired/result";',
+    'import { DEFAULT_RESULT_PRESETS, createResultTracer, resolveResultPreset, result } from "@package/result";',
     "",
     "const records = [];",
     "const tracer = createResultTracer({",

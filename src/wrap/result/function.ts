@@ -5,7 +5,7 @@ import { isPromiseLike } from "#shared";
 import type { WrapResultFunctionOptions } from "#qsb8x4t06m0e";
 import { wrapResultPromiseWithRuntime } from "./promise.js";
 
-const ORIGINAL_FUNCTION_SYMBOL = Symbol.for("@trebired/result/original-function");
+const ORIGINAL_FUNCTION_SYMBOL = Symbol.for("@package/result/original-function");
 
 function wrapResultFunction<Fn extends (...args: any[]) => any>(
   fn: Fn,
@@ -21,7 +21,7 @@ function wrapResultFunctionWithRuntime<Fn extends (...args: any[]) => any>(
   options: WrapResultFunctionOptions = {},
 ): Fn {
   const original = unwrapFunction(fn);
-  const label = normalizeTraceLabel(options.label || original.name, "trebired.result.function");
+  const label = normalizeTraceLabel(options.label || original.name, "package.result.function");
   const cached = getCachedEntry(runtime.functionCache, original, label);
 
   if (cached) {

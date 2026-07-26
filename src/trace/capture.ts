@@ -51,7 +51,7 @@ function emitTraceRecord(
   options: ResultTraceContextInput,
   severity: ResultTraceRecord["severity"],
 ): ResultTraceRecord | null {
-  const label = normalizeTraceLabel(options.label || runtime.getTraceStack().slice(-1)[0], "trebired.result.trace");
+  const label = normalizeTraceLabel(options.label || runtime.getTraceStack().slice(-1)[0], "package.result.trace");
   const record: ResultTraceRecord = {
     createdAt: new Date().toISOString(),
     kind,
