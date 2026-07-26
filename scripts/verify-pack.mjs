@@ -165,7 +165,14 @@ async function runConsumerSmokeTest(tarballPath) {
   await fs.mkdir(consumerDir, {
     recursive: true,
   });
+  await writeConsumerManifest(consumerDir, tarballPath);
+  await writeConsumerTypecheckFixture(consumerDir);
+  await writeConsumerRuntimeFixture(consumerDir);
+  await writeConsumerTsconfig(consumerDir);
+  runConsumerChecks(consumerDir);
+}
 
+async function writeConsumerManifest(consumerDir, tarballPath) {
   await fs.writeFile(path.join(consumerDir, "package.json"), JSON.stringify({
     name: "result-pack-smoke",
     private: true,
@@ -178,17 +185,19 @@ async function runConsumerSmokeTest(tarballPath) {
       "@types/node": `file:${nodeTypesDir}`,
     },
   }, null, 2));
+}
 
+async function writeConsumerTypecheckFixture(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "index.ts"), [
-    'import { createResultResponder, createResultTracer, result } from "@trebired/result";',
+    'import { createResponder, createResultTracer, result } from "@trebired/result";',
     "",
     "const tracer = createResultTracer();",
-    "const responder = createResultResponder({",
-    "  json(ctx) {",
-    "    return ctx.payload.status;",
+    "const respond = createResponder({",
+    "  sendJson(_ctx, payload) {",
+    "    return payload.status;",
     "  },",
-    "  text(ctx) {",
-    "    return ctx.text;",
+    "  sendText(_ctx, _status, text) {",
+    "    return text;",
     "  },",
     "});",
     "",
@@ -196,14 +205,13 @@ async function runConsumerSmokeTest(tarballPath) {
     "  label: \"pack.smoke\",",
     "});",
     "",
-    "const out = await responder.respond({",
-    "  res: {},",
-    "  result: traced(),",
-    "});",
+    "const out = await respond({}, traced());",
     "",
     "console.log(out);",
   ].join("\n"));
+}
 
+async function writeConsumerRuntimeFixture(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "runtime.mjs"), [
     'import { DEFAULT_RESULT_PRESETS, createResultTracer, resolveResultPreset, result } from "@trebired/result";',
     "",
@@ -214,7 +222,7 @@ async function runConsumerSmokeTest(tarballPath) {
     "  },",
     "});",
     "",
-    "const wrapped = tracer.wrapFunction(() => result.notFound(\"pack-missing\", \"Missing.\"), {",
+    "const wrapped = tracer.wrapFunction(() => result.notFound(\"packMissing\"), {",
     "  label: \"pack.runtime\",",
     "});",
     "",
@@ -229,7 +237,9 @@ async function runConsumerSmokeTest(tarballPath) {
     "",
     "console.log(typeof preset.title, typeof preset.message, records.length);",
   ].join("\n"));
+}
 
+async function writeConsumerTsconfig(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "tsconfig.json"), JSON.stringify({
     compilerOptions: {
       lib: [
@@ -247,7 +257,9 @@ async function runConsumerSmokeTest(tarballPath) {
       "./index.ts",
     ],
   }, null, 2));
+}
 
+function runConsumerChecks(consumerDir) {
   execFileSync("npm", ["install", "--ignore-scripts"], {
     ...createNpmOptions(consumerDir),
     stdio: "inherit",

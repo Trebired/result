@@ -1,10 +1,8 @@
 # @trebired/result
 
-Shared result builders, response orchestration, and failure tracing for Bun and Node.js products.
+Shared result builders, backend/system responder helpers, local i18n lookup, and failure tracing for Bun and Node.js packages.
 
-`@trebired/result` gives Trebired packages a shared result envelope, a transport-facing responder layer, and an opt-in tracing toolkit for failed flows.
-
-It does not know about Express, React, route names, page names, logger group wording, or a fixed runtime layout. Hosts bring their own adapters and decide which advanced tracing surfaces to enable.
+`@trebired/result` is transport-agnostic. It does not import web frameworks, route files, frontend code, app registries, global dictionaries, or generated i18n state. Callers provide the delivery callbacks and local translation bundles.
 
 ## Install
 
@@ -16,80 +14,55 @@ npm install @trebired/result
 
 ## Quick Start
 
-Build shared result payloads in normal application code:
+Build keyed results:
 
 ```ts
 import { result } from "@trebired/result";
 
-const saved = result.ok("Project saved.", {
-  data: {
-    id: "project_42",
-  },
+const missingPassword = result.badRequest("missingPassword", {
+  min: 8,
 });
 
-const missing = result.notFound("project-not-found", "Project not found.", {
-  details: {
-    id: "project_42",
-  },
+const writeFailed = result.internal("writeFailed", {
+  filePath: "/var/data/output.json",
 });
 ```
 
-Wire a responder with transport adapters:
+Wire a responder with caller-owned callbacks:
 
 ```ts
-import { createResultResponder, result } from "@trebired/result";
+import { createResponder, result } from "@trebired/result";
+import en from "./i18n/en";
+import cs from "./i18n/cs";
 
-const responder = createResultResponder({
-  json({ res, payload }) {
-    return res.status(payload.status).json(payload);
-  },
-  render({ res, model }) {
-    return res.status(model.status).render("result", model);
-  },
-  text({ res, model, text }) {
-    return res.status(model.status).type("text/plain").send(text);
-  },
-  getRenderModePath({ res }) {
-    return res.locals.renderModePath;
-  },
+const authI18n = { en, cs };
+
+const respond = createResponder({
+  getLanguage: (ctx) => ctx.lang,
+  sendJson: (ctx, payload) => ctx.reply.json(payload.status, payload),
+  sendText: (ctx, status, text) => ctx.reply.text(status, text),
+  render: (ctx, model) => ctx.reply.render(model),
 });
 
-return responder.respond({
-  req,
-  res,
-  result: result.notFound("project-not-found", "Project not found."),
-  render: true,
-  type: "app.project",
+return respond(ctx, result.badRequest("missingPassword", { min: 8 }), {
+  i18n: authI18n,
+  render: "auto",
 });
 ```
 
-Add tracing only where it helps:
+## Result Builders
+
+The normal builder shape is key-first:
 
 ```ts
-import { createResultTracer, result } from "@trebired/result";
-
-const tracer = createResultTracer({
-  failedResultSeverity: "warn",
-  logger: console,
-  onTrace(record) {
-    console.error(record.label, record.message, record.traceStack);
-  },
-});
-
-const loadProject = tracer.wrapFunction(async (id: string) => {
-  if (id === "missing") {
-    return result.notFound("project-not-found", "Project not found.");
-  }
-
-  throw new Error("Database offline");
-}, {
-  label: "project.load",
-});
+result.unauthorized("authRequired");
+result.badRequest("missingPassword");
+result.internal("writeFailed", { filePath });
 ```
 
-## Result Builder
+The second argument is metadata. The responder uses it as interpolation variables and keeps it on `payload.meta`.
 
-The shared result envelope stays consistent across success, noop, and error outcomes:
+The shared result envelope is:
 
 ```ts
 type ResultLike = {
@@ -106,72 +79,81 @@ type ResultLike = {
 };
 ```
 
+`message` is the stable local key on the raw result. `error_code` is the normalized stable code, for example `missingPassword` becomes `missing-password`. Responder payloads localize `message` while preserving `error_code`.
+
 Builder helpers:
 
-- `result.ok(message?, meta?)`
-- `result.noop(code?, message?, meta?)`
-- `result.error(status?, code?, message?, meta?)`
-- `result.badRequest(...)`
-- `result.unauthorized(...)`
-- `result.forbidden(...)`
-- `result.notFound(...)`
-- `result.conflict(...)`
-- `result.internal(...)`
+- `result.ok(messageKey?, metadata?)`
+- `result.noop(messageKey?, metadata?)`
+- `result.error(status?, messageKey?, metadata?)`
+- `result.badRequest(messageKey?, metadata?)`
+- `result.unauthorized(messageKey?, metadata?)`
+- `result.forbidden(messageKey?, metadata?)`
+- `result.notFound(messageKey?, metadata?)`
+- `result.conflict(messageKey?, metadata?)`
+- `result.internal(messageKey?, metadata?)`
 
-The `meta` argument accepts optional `data`, `details`, `redirect`, `meta`, and `error` fields.
+## Local I18n
 
-## Responder Model
-
-The responder factory keeps transport concerns outside the package:
-
-- `json` handles API-style payload delivery.
-- `render` is optional and only used when `respond({ render: true })` is requested.
-- `text` receives a fallback payload when render is unavailable or throws.
-- `getRenderModePath` is optional and lets a host derive mode-aware render variants such as `app.process.error`.
-
-Preset resolution walks in this order:
-
-1. result level
-2. exact status for that level
-3. parent type chain from least specific to most specific
-
-That means `app.process.publication` can inherit from `app`, then override with `app.process`, then override again with `app.process.publication`.
-
-## Presets
-
-The package exports shared defaults plus helpers for extension:
+Pass local bundles at respond time:
 
 ```ts
-import {
-  DEFAULT_RESULT_PRESETS,
-  mergeResultPresets,
-  resolveResultPreset,
-} from "@trebired/result";
-
-const presets = mergeResultPresets(DEFAULT_RESULT_PRESETS, {
-  error: {
-    types: {
-      "app.project": {
-        statuses: {
-          404: {
-            title: "Project not found",
-            message: "The requested project does not exist.",
-          },
-        },
-      },
+const authI18n = {
+  en: {
+    authRequired: "Authentication required.",
+    missingPassword: "Password must be at least {min} characters.",
+    protect: {
+      missingMode: "Missing protect mode.",
     },
   },
-});
+  cs: {
+    authRequired: "Je vyzadovano prihlaseni.",
+    missingPassword: "Heslo musi mit alespon {min} znaku.",
+  },
+};
 
-const preset = resolveResultPreset({
-  presets,
-  level: "error",
-  status: 404,
-  type: "app.project.branch",
+await respond(ctx, result.badRequest("protect.missingMode"), {
+  i18n: authI18n,
 });
 ```
 
-Defaults stay reusable. No app-specific views, routes, or page names are built in.
+Translation rules:
+
+- language comes from `getLanguage(ctx)`
+- lookup uses the explicit `i18n` object passed to `respond`
+- nested dot keys are supported
+- metadata is available for `{name}` and `{{ name }}` interpolation
+- the selected language wins when it has the key
+- missing selected-language keys fall back to `en` in the same local bundle
+- missing keys in all bundles return the key itself
+
+There is no global registry, generated dictionary source, or `globalThis` lookup.
+
+## Responder
+
+`createResponder(config)` returns a callable responder:
+
+```ts
+const respond = createResponder({
+  getLanguage: (ctx) => ctx.lang,
+  sendJson: (ctx, payload) => ctx.send(payload.status, payload),
+  sendText: (ctx, status, text) => ctx.sendText(status, text),
+  render: (ctx, model) => ctx.render(model),
+});
+
+await respond(ctx, result.unauthorized("authRequired"), {
+  i18n,
+});
+```
+
+Dispatch options:
+
+- default or `render: "json"` calls `sendJson(ctx, payload)`
+- `render: "text"` calls `sendText(ctx, status, message)`
+- `render: "auto"` calls `render(ctx, model)` when configured, otherwise JSON
+- `render: true` calls `render(ctx, model)` when configured, otherwise text
+
+The package also exports `respond(ctx, result, options, config)` for callers that want a one-shot helper instead of a preconfigured responder.
 
 ## Tracing Toolkit
 
@@ -179,7 +161,20 @@ Tracing is fully opt-in. Nothing patches the runtime unless you call a tracing A
 
 Logger delivery uses `@trebired/logger-adapter`, so package code can keep Trebired-style `group/message/metadata` logging while still accepting `console`, pino-style loggers, sink functions, or a custom `loggerAdapter` writer.
 
-`createResultTracer()` gives you one runtime with:
+```ts
+import { createResultTracer, result } from "@trebired/result";
+
+const tracer = createResultTracer({
+  failedResultSeverity: "warn",
+  logger: console,
+});
+
+tracer.traceFailure(result.notFound("projectMissing"), {
+  label: "project.read",
+});
+```
+
+`createResultTracer()` supports:
 
 - failed-result tracing
 - thrown-error tracing
@@ -187,41 +182,6 @@ Logger delivery uses `@trebired/logger-adapter`, so package code can keep Trebir
 - nested trace-stack propagation
 - wrapper and proxy caches
 - optional process and module hooks
-
-```ts
-import { createResultTracer, result } from "@trebired/result";
-
-const records: unknown[] = [];
-const tracer = createResultTracer({
-  stackDepth: 10,
-  failedResultSeverity: "warn",
-  logger: console,
-  onTrace(record) {
-    records.push(record);
-  },
-});
-
-tracer.traceFailure(result.notFound("project-not-found", "Missing."), {
-  label: "project.read",
-});
-```
-
-Each trace record includes:
-
-- `kind`
-- `severity`
-- `label`
-- `errorCode`
-- `status`
-- `message`
-- `compactStack`
-- `failureSite`
-- `argumentPreview`
-- `metadataSummary`
-- `dataSummary`
-- `detailsSummary`
-- `source`
-- `traceStack`
 
 ## Wrapping Functions And Promises
 
@@ -234,22 +194,14 @@ const tracer = createResultTracer();
 
 const saveProject = tracer.wrapFunction(async (input: { id: string }) => {
   if (!input.id) {
-    return result.badRequest("missing-id", "Project id is required.");
+    return result.badRequest("missingId", {
+      field: "id",
+    });
   }
 
-  return result.ok("Saved.");
+  return result.ok("saved");
 }, {
   label: "project.save",
-});
-
-const remoteSync = tracer.wrapPromise(fetch("https://example.test").then((res) => {
-  if (!res.ok) {
-    throw new Error(`Remote sync failed: ${res.status}`);
-  }
-
-  return res;
-}), {
-  label: "project.sync",
 });
 ```
 
@@ -261,127 +213,33 @@ Wrappers preserve original behavior:
 - thrown and rejected failures are traced
 - the same function or promise is not wrapped twice inside the same tracer runtime
 
-## Export And Object Instrumentation
+## Presets
 
-If a module exports a plain object tree, you can instrument it without hand-wrapping every method:
-
-```ts
-import { createResultTracer } from "@trebired/result";
-import * as handlers from "./handlers.js";
-
-const tracer = createResultTracer({
-  objectDepth: 3,
-});
-
-const instrumented = tracer.instrumentExports(handlers, {
-  label: "handlers",
-  include: "invoice",
-});
-```
-
-Instrumentation:
-
-- wraps callable exports
-- descends into plain object trees up to the configured depth
-- leaves symbol-based access alone
-- caches proxies and wrappers so the same target is reused
-
-## Process And Module Hooks
-
-Advanced runtime hooks are available when you explicitly opt in.
-
-Process hooks:
+The package still exports generic preset helpers for callers that want shared status/title defaults:
 
 ```ts
-import { installResultProcessHooks } from "@trebired/result";
+import {
+  DEFAULT_RESULT_PRESETS,
+  mergeResultPresets,
+  resolveResultPreset,
+} from "@trebired/result";
 
-const hooks = installResultProcessHooks({
-  logger: console,
-  exitOnUncaughtException: false,
-  exitOnUnhandledRejection: false,
-});
-
-hooks.uninstall();
-```
-
-Module hooks:
-
-```ts
-import { installResultModuleHooks } from "@trebired/result";
-
-const hooks = installResultModuleHooks({
-  include: [/services/, /workers/],
-  labelPrefix: "module",
-});
-
-hooks.uninstall();
-```
-
-Module instrumentation only works in runtimes that expose a CommonJS-style loader with `_load` support. It is meant for targeted observability, not for blanket patching in every environment.
-
-## Boot Helper
-
-If you want one entrypoint that creates a tracer and installs selected hooks, use `bootResultTracing()`:
-
-```ts
-import { bootResultTracing } from "@trebired/result";
-
-const boot = bootResultTracing({
-  logger: console,
-  processHooks: {
-    exitOnUncaughtException: false,
+const presets = mergeResultPresets(DEFAULT_RESULT_PRESETS, {
+  error: {
+    statuses: {
+      404: {
+        title: "Missing",
+      },
+    },
   },
 });
 
-boot.tracer.wrapFunction(() => {
-  throw new Error("boom");
-}, {
-  label: "demo.run",
+const preset = resolveResultPreset({
+  presets,
+  level: "error",
+  status: 404,
 });
 ```
-
-## Configuration
-
-Tracing configuration lets hosts control:
-
-- `enabled`
-- `logger`
-- `loggerAdapter`
-- `onTrace`
-- `include`
-- `exclude`
-- `objectDepth`
-- `stackDepth`
-- `argumentPreview`
-- `summaryPreview`
-- `failedResultSeverity`
-
-Wrapper and hook helpers also accept:
-
-- `label`
-- `source`
-- `tracer`
-- per-call `include` and `exclude`
-- process exit policies
-- module label prefixes and traversal depth
-
-## Safe Defaults
-
-Safe by default:
-
-- result builders
-- responder factory
-- preset resolution
-- manual tracing with `traceFailure`, `traceResult`, or `traceError`
-- function and promise wrapping
-
-More invasive surfaces:
-
-- export/object instrumentation
-- process hooks
-- module hooks
-
-Those advanced surfaces are still opt-in and can be turned off per host.
 
 ## Public API
 
@@ -397,7 +255,10 @@ Runtime exports:
 - `notFound`
 - `conflict`
 - `internal`
-- `createResultResponder`
+- `createResponder`
+- `respond`
+- `shapeResultPayload`
+- `translateMessage`
 - `createResultTracer`
 - `bootResultTracing`
 - `wrapResultFunction`
@@ -422,4 +283,4 @@ Runtime exports:
 - `previewValue`
 - `summarizeFailedResult`
 
-Type exports include the result, responder, preset, and tracing types used by those APIs.
+Type exports include result, responder, i18n, preset, and tracing types used by those APIs.

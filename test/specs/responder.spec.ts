@@ -1,199 +1,239 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, expect, test } from "bun:test";
 
 import {
-  createResultResponder,
-  mergeResultPresets,
+  createResponder,
   result,
+  shapeResultPayload,
+  translateMessage,
 } from "#index";
 
-function createResponderPresets() {
-  return mergeResultPresets(undefined, {
-    error: {
-      default: {
-        view: "result/error",
-      },
-      types: {
-        app: {
-          default: {
-            view: "result/app",
-          },
-        },
-        "app.process": {
-          statuses: {
-            "404": {
-              title: "Process not found",
-              message: "The requested process does not exist.",
-            },
-          },
-        },
-      },
+const authI18n = {
+  en: {
+    authRequired: "Authentication required.",
+    missingPassword: "Password must be at least {min} characters.",
+    protect: {
+      missingMode: "Missing protect mode.",
+    },
+  },
+  cs: {
+    authRequired: "Je vyzadovano prihlaseni.",
+    missingPassword: "Heslo musi mit alespon {min} znaku.",
+  },
+};
+
+type TestContext = {
+  lang?: string;
+  sent: unknown[];
+};
+
+function createTestResponder() {
+  return createResponder<TestContext>({
+    getLanguage: (ctx) => ctx.lang,
+    sendJson(ctx, payload) {
+      ctx.sent.push({
+        type: "json",
+        payload,
+      });
+      return payload;
+    },
+    sendText(ctx, status, text) {
+      ctx.sent.push({
+        type: "text",
+        status,
+        text,
+      });
+      return text;
+    },
+    render(ctx, model) {
+      ctx.sent.push({
+        type: "render",
+        model,
+      });
+      return model;
     },
   });
 }
 
-function registerJsonResponderTest() {
-  test("delivers JSON payloads and preserves additional top-level fields", async () => {
-    const seen: Array<Record<string, unknown>> = [];
-    const responder = createResultResponder({
-      json(context) {
-        seen.push(context.payload);
-        return context.payload;
-      },
-      text(context) {
-        return context.text;
-      },
-    });
-
-    const payload = Object.assign(result.ok("Saved.", {
-      data: {
-        id: "project_42",
-      },
-    }), {
-      operation_id: "op_1",
-    });
-
-    const response = await responder.respond({
-      res: {},
-      result: payload,
-      successMessage: "Saved successfully.",
-    });
-
-    expect(response).toEqual({
-      ok: true,
-      error: false,
-      noop: false,
-      status: 200,
-      error_code: "",
-      message: "Saved successfully.",
-      data: {
-        id: "project_42",
-      },
-      operation_id: "op_1",
-    });
-    expect(seen).toHaveLength(1);
-  });
-}
-
-function createRenderFallbackObserver() {
+function createTestContext(lang?: string): TestContext {
   return {
-    logs: [] as Array<Record<string, unknown>>,
-    rendered: [] as Array<Record<string, unknown>>,
-    textResponses: [] as Array<Record<string, unknown>>,
+    lang,
+    sent: [],
   };
 }
 
-function createRenderFallbackResponder(observer: ReturnType<typeof createRenderFallbackObserver>) {
-  return createResultResponder({
-    presets: createResponderPresets(),
-    logger: {
-      error(scope: string, message: string, meta?: unknown) {
-        observer.logs.push({
-          scope,
-          message,
-          meta,
-        });
+function registerInterpolationTest() {
+  test("uses local bundle translations and metadata interpolation", async () => {
+    const ctx = createTestContext("en");
+    const respond = createTestResponder();
+
+    const payload = await respond(ctx, result.badRequest("missingPassword", { min: 8 }), {
+      i18n: authI18n,
+    });
+
+    expect(payload).toMatchObject({
+      status: 400,
+      error_code: "missing-password",
+      message: "Password must be at least 8 characters.",
+      meta: {
+        min: 8,
       },
-      fail() {},
-    },
-    json() {
-      throw new Error("json should not be used");
-    },
-    render(context) {
-      observer.rendered.push(context.model as unknown as Record<string, unknown>);
-      throw new Error("template exploded");
-    },
-    text(context) {
-      observer.textResponses.push({
-        text: context.text,
-        cause: context.cause,
-        title: context.model.title,
-        message: context.model.message,
-        view: context.model.view,
-        renderModePath: context.model.renderModePath,
-      });
-      return context.text;
-    },
-    getRenderModePath() {
-      return "app.process";
-    },
+    });
+    expect(ctx.sent).toHaveLength(1);
   });
 }
 
-function expectRenderFallbackObserver(observer: ReturnType<typeof createRenderFallbackObserver>) {
-  expect(observer.rendered[0]).toMatchObject({
-    title: "Process not found",
-    message: "Missing process.",
-    view: "result/app",
-    renderModePath: "app.process.error",
+function registerLanguageFallbackTests() {
+  test("prefers Czech translations when the configured language is cs", async () => {
+    const ctx = createTestContext("cs");
+    const respond = createTestResponder();
+
+    const payload = await respond(ctx, result.unauthorized("authRequired"), {
+      i18n: authI18n,
+    });
+
+    expect(payload).toMatchObject({
+      status: 401,
+      error_code: "auth-required",
+      message: "Je vyzadovano prihlaseni.",
+    });
   });
-  expect(observer.textResponses[0]).toEqual({
-    text: "Not Found",
-    cause: "fallback",
-    title: "Process not found",
-    message: "Missing process.",
-    view: "result/app",
-    renderModePath: "app.process.error",
+
+  test("falls back to English from the provided local bundle", async () => {
+    const ctx = createTestContext("cs");
+    const respond = createTestResponder();
+
+    const payload = await respond(ctx, result.badRequest("protect.missingMode"), {
+      i18n: authI18n,
+    });
+
+    expect(payload).toMatchObject({
+      status: 400,
+      error_code: "protect-missing-mode",
+      message: "Missing protect mode.",
+    });
   });
-  expect(observer.logs[0]).toMatchObject({
-    scope: "trebired.result.responder",
-    message: "render-failed",
-    meta: {
-      status: 404,
-      type: "app.process.publication",
-      view: "result/app",
-      error: "template exploded",
-      requestId: "req_9",
-    },
+
+  test("supports missing-key fallback to the key string", async () => {
+    const ctx = createTestContext("cs");
+    const respond = createTestResponder();
+
+    const payload = await respond(ctx, result.badRequest("notInBundle"), {
+      i18n: authI18n,
+    });
+
+    expect(payload).toMatchObject({
+      error_code: "not-in-bundle",
+      message: "notInBundle",
+    });
   });
 }
 
-function registerRenderFallbackTest() {
-  test("falls back to plain text when rendering throws and logs a render failure", async () => {
-    const observer = createRenderFallbackObserver();
-    const responder = createRenderFallbackResponder(observer);
+function registerDispatchTests() {
+  test("uses caller-provided send and render callbacks", async () => {
+    const ctx = createTestContext("en");
+    const respond = createTestResponder();
 
-    const response = await responder.respond({
-      req: {
-        method: "GET",
-      },
-      res: {},
-      result: result.notFound("process-not-found", "Missing process.", {
-        meta: {
-          requestId: "req_9",
+    const rendered = await respond(ctx, result.internal("writeFailed", { filePath: "/tmp/out.txt" }), {
+      i18n: {
+        en: {
+          writeFailed: "Could not write {filePath}.",
         },
-      }),
-      render: true,
-      type: "app.process.publication",
+      },
+      render: "auto",
+      type: "system.write",
+      view: "result/error",
     });
 
-    expect(response).toBe("Not Found");
-    expectRenderFallbackObserver(observer);
+    expect(rendered).toMatchObject({
+      status: 500,
+      type: "system.write",
+      view: "result/error",
+      message: "Could not write /tmp/out.txt.",
+      error_code: "write-failed",
+    });
+    expect(ctx.sent).toHaveLength(1);
+    expect(ctx.sent[0]).toMatchObject({
+      type: "render",
+    });
+  });
+
+  test("supports explicit text dispatch through the caller callback", async () => {
+    const ctx = createTestContext("en");
+    const respond = createTestResponder();
+
+    const text = await respond(ctx, result.badRequest("missingPassword", { min: 12 }), {
+      i18n: authI18n,
+      render: "text",
+    });
+
+    expect(text).toBe("Password must be at least 12 characters.");
+    expect(ctx.sent[0]).toEqual({
+      type: "text",
+      status: 400,
+      text: "Password must be at least 12 characters.",
+    });
   });
 }
 
-function registerNoRendererTextTest() {
-  test("uses text delivery when render is requested without a render adapter", async () => {
-    const responder = createResultResponder({
-      json() {
-        throw new Error("json should not be used");
+function registerHelperTests() {
+  test("exposes payload shaping and translation helpers", () => {
+    expect(translateMessage("missingPassword", {
+      bundle: authI18n,
+      language: "en",
+      variables: {
+        min: 10,
       },
-      text(context) {
-        return `${context.cause}:${context.text}`;
-      },
-    });
+    })).toBe("Password must be at least 10 characters.");
 
-    const response = await responder.respond({
-      res: {},
-      result: result.ok("Ready."),
-      render: true,
+    expect(shapeResultPayload(result.badRequest("missingPassword", { min: 6 }), {
+      sendJson() {},
+      sendText() {},
+    }, { lang: "en" }, {
+      i18n: authI18n,
+    })).toMatchObject({
+      message: "Password must be at least 6 characters.",
     });
-
-    expect(response).toBe("no-renderer:Success");
   });
+}
+
+function registerNoFrameworkImportTest() {
+  test("does not import app or web framework packages", () => {
+    const sourceDir = path.resolve(import.meta.dir, "../../src");
+    const files = collectSourceFiles(sourceDir);
+    const combined = files.map((file) => fs.readFileSync(file, "utf8")).join("\n");
+
+    expect(combined).not.toMatch(/from\s+["']express["']/u);
+    expect(combined).not.toMatch(/from\s+["'][^"']*(platform|frontend|app\/)/u);
+    expect(combined).not.toContain("res.locals");
+    expect(combined).not.toContain("globalThis");
+  });
+}
+
+function collectSourceFiles(dir: string): string[] {
+  const out: string[] = [];
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const filePath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      out.push(...collectSourceFiles(filePath));
+      continue;
+    }
+
+    if (entry.isFile() && filePath.endsWith(".ts")) {
+      out.push(filePath);
+    }
+  }
+
+  return out;
 }
 
 describe("@trebired/result responder", () => {
-  registerJsonResponderTest();
-  registerRenderFallbackTest();
-  registerNoRendererTextTest();
+  registerInterpolationTest();
+  registerLanguageFallbackTests();
+  registerDispatchTests();
+  registerHelperTests();
+  registerNoFrameworkImportTest();
 });

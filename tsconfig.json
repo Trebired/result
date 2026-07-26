@@ -10,95 +10,6 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
-    "paths": {
-      "#0231fmpa2dc7": [
-        "./src/trace/runtime.ts"
-      ],
-      "#0g27abpmv4cx": [
-        "./src/process_hooks.ts"
-      ],
-      "#2c05w36hsc1v": [
-        "./test/specs/trace_utils.spec.ts"
-      ],
-      "#49kqgj47729a": [
-        "./src/module_hooks.ts"
-      ],
-      "#808bldc29h8o": [
-        "./test/specs/wrap_result.spec.ts"
-      ],
-      "#89og18ildn0f": [
-        "./test/specs/presets.spec.ts"
-      ],
-      "#9u38bvr71ysb": [
-        "./src/logging.ts"
-      ],
-      "#cqh3tzy8af60": [
-        "./test/specs/responder.spec.ts"
-      ],
-      "#f50kks3ik0zv": [
-        "./src/instrument_result_exports.ts"
-      ],
-      "#fkl0t1n99da1": [
-        "./src/responder_support.ts"
-      ],
-      "#index": [
-        "./src/index.ts"
-      ],
-      "#j7kz1s2wcwqd": [
-        "./src/tracer.ts"
-      ],
-      "#lm07mhb4j68n": [
-        "./src/wrap/result/function.ts"
-      ],
-      "#mht13ofmb0kj": [
-        "./src/wrap/result/promise.ts"
-      ],
-      "#mo7xcevtwj2o": [
-        "./tb.code-discipline.ts"
-      ],
-      "#oflh8vf6azd0": [
-        "./test/specs/tracer.spec.ts"
-      ],
-      "#ovyuo31bgsj9": [
-        "./src/trace/capture.ts"
-      ],
-      "#pnz4beckrlja": [
-        "./test/specs/process_hooks.spec.ts"
-      ],
-      "#presets": [
-        "./src/presets.ts"
-      ],
-      "#qsb8x4t06m0e": [
-        "./src/trace/types.ts"
-      ],
-      "#qv2tckycd08y": [
-        "./test/specs/module_hooks.spec.ts"
-      ],
-      "#responder": [
-        "./src/responder.ts"
-      ],
-      "#result": [
-        "./src/result.ts"
-      ],
-      "#rw8w0e1qwb29": [
-        "./test/specs/result.spec.ts"
-      ],
-      "#shared": [
-        "./src/shared.ts"
-      ],
-      "#smbsgto1gky9": [
-        "./test/specs/instrument_result_exports.spec.ts"
-      ],
-      "#types": [
-        "./src/types.ts"
-      ],
-      "#ypczi4qi4ap6": [
-        "./src/trace/utils.ts"
-      ],
-      "#yylkpj0c6fwm": [
-        "./test/specs/helpers.ts"
-      ]
-    },
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
@@ -112,9 +23,9 @@
     "dist",
     "node_modules"
   ],
+  "extends": "./.code-discipline/generated/tsconfig.paths.json",
   "include": [
     "src/**/*.ts",
-    "test/**/*.ts",
-    "tb.code-discipline.ts"
+    "test/**/*.ts"
   ]
 }

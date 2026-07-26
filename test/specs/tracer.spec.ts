@@ -12,7 +12,7 @@ test("traces failed result payloads with configurable severity", () => {
     failedResultSeverity: "warn",
   });
 
-  const record = tracer.traceFailure(result.notFound("missing-project", "Project missing."), {
+  const record = tracer.traceFailure(result.notFound("missingProject"), {
     label: "projects.read",
   });
 

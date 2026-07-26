@@ -1,13 +1,13 @@
-import { hasOwn, normalizeResultErrorCode, toResultStatus } from "#shared";
-import type { ResultInit, ResultLike, ResultMetadata } from "#types";
+import { normalizeResultErrorCode, toResultStatus } from "#shared";
+import type { ResultLike, ResultMetadata } from "#types";
 
 function ok<
   TData = unknown,
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  message = "Success.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "success",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
     ok: true,
@@ -25,16 +25,15 @@ function noop<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  code = "noop",
-  message = "No changes.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "noop",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
     ok: true,
     error: false,
     noop: true,
     status: 200,
-    error_code: normalizeResultErrorCode(code) || "noop",
+    error_code: normalizeResultErrorCode(message) || "noop",
     message,
     meta,
   });
@@ -46,16 +45,15 @@ function error<
   TMeta extends ResultMetadata = ResultMetadata,
 >(
   status = 400,
-  code = "failed",
-  message = "Request failed.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "failed",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
     ok: false,
-    error: typeof meta?.error === "boolean" ? meta.error : true,
+    error: true,
     noop: false,
     status: toResultStatus(status, 400),
-    error_code: normalizeResultErrorCode(code) || "failed",
+    error_code: normalizeResultErrorCode(message) || "failed",
     message,
     meta,
   });
@@ -66,11 +64,10 @@ function badRequest<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  code = "bad-request",
-  message = "Bad request.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "badRequest",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(400, code, message, meta);
+  return error(400, message, meta);
 }
 
 function unauthorized<
@@ -78,11 +75,10 @@ function unauthorized<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  code = "unauthorized",
-  message = "Unauthorized.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "unauthorized",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(401, code, message, meta);
+  return error(401, message, meta);
 }
 
 function forbidden<
@@ -90,11 +86,10 @@ function forbidden<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  code = "forbidden",
-  message = "Forbidden.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "forbidden",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(403, code, message, meta);
+  return error(403, message, meta);
 }
 
 function notFound<
@@ -102,11 +97,10 @@ function notFound<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  code = "not-found",
-  message = "Not found.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "notFound",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(404, code, message, meta);
+  return error(404, message, meta);
 }
 
 function conflict<
@@ -114,11 +108,10 @@ function conflict<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  code = "conflict",
-  message = "Conflict.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "conflict",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(409, code, message, meta);
+  return error(409, message, meta);
 }
 
 function internal<
@@ -126,14 +119,10 @@ function internal<
   TDetails = unknown,
   TMeta extends ResultMetadata = ResultMetadata,
 >(
-  code = "internal-error",
-  message = "Internal error.",
-  meta?: ResultInit<TData, TDetails, TMeta>,
+  message = "internalError",
+  meta?: TMeta,
 ): ResultLike<TData, TDetails, TMeta> {
-  return error(500, code, message, {
-    ...meta,
-    error: typeof meta?.error === "boolean" ? meta.error : true,
-  });
+  return error(500, message, meta);
 }
 
 const result = {
@@ -167,7 +156,7 @@ function createResult<
   status: number;
   error_code: string;
   message: string;
-  meta?: ResultInit<TData, TDetails, TMeta>;
+  meta?: TMeta;
 }): ResultLike<TData, TDetails, TMeta> {
   const out: ResultLike<TData, TDetails, TMeta> = {
     ok,
@@ -176,19 +165,11 @@ function createResult<
     status,
     error_code,
     message,
-    data: hasOwn(meta, "data") ? (meta?.data ?? null) : null,
+    data: null,
   };
 
-  if (hasOwn(meta, "details") && meta?.details !== undefined) {
-    out.details = meta.details;
-  }
-
-  if (typeof meta?.redirect === "string" && meta.redirect.length > 0) {
-    out.redirect = meta.redirect;
-  }
-
-  if (meta?.meta && Object.keys(meta.meta).length > 0) {
-    out.meta = meta.meta;
+  if (meta && Object.keys(meta).length > 0) {
+    out.meta = meta;
   }
 
   return out;

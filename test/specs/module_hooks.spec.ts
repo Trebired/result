@@ -8,7 +8,7 @@ test("instruments loaded module exports through the wrapper system", () => {
     worker() {
       return {
         fail() {
-          return result.conflict("module-failed", "Module failed.");
+          return result.conflict("moduleFailed");
         },
         nested: {
           explode() {

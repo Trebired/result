@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0
+
+- Added first-class generic responder support with caller-provided JSON, text, render, and language callbacks.
+- Made result builders key-first, with metadata objects used for interpolation variables and payload metadata.
+- Added explicit local i18n bundle lookup with nested dot keys, Czech/selected-language resolution, English fallback from the provided bundle, and missing-key fallback to the key string.
+- Kept localized payload messages separate from stable normalized result/error codes.
+- Migrated the package to Code Discipline 4.7 alias-map mode without package.json imports.
+
 ## 0.2.1
 
 - Moved package-owned result tracing and responder diagnostics under the `trebired.result` group root while leaving caller-supplied trace labels intact.

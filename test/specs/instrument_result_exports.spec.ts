@@ -8,7 +8,7 @@ test("wraps callable exports and nested plain-object methods", () => {
   const marker = Symbol("marker");
   const target = {
     fail() {
-      return result.notFound("missing-item", "Missing.");
+      return result.notFound("missingItem");
     },
     nested: {
       explode() {
@@ -42,10 +42,10 @@ test("reuses proxies and respects include and exclude filters", () => {
   const { records, tracer } = createObservedTracer();
   const target = {
     allowed() {
-      return result.conflict("blocked", "Blocked.");
+      return result.conflict("blocked");
     },
     skipped() {
-      return result.conflict("ignored", "Ignored.");
+      return result.conflict("ignored");
     },
   };
 

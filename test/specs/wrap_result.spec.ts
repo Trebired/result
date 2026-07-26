@@ -48,7 +48,7 @@ test("propagates nested trace stacks for thrown failures", () => {
 
 test("traces failed result returns from wrapped functions", () => {
   const { records, tracer } = createObservedTracer();
-  const wrapped = tracer.wrapFunction(() => result.conflict("save-blocked", "Blocked."), {
+  const wrapped = tracer.wrapFunction(() => result.conflict("saveBlocked"), {
     label: "project.save",
   });
 
@@ -88,7 +88,7 @@ test("traces rejected promises and deduplicates wrapped promises", async () => {
 
 test("traces resolved failed-result payloads from wrapped promises", async () => {
   const { records, tracer } = createObservedTracer();
-  const output = await tracer.wrapPromise(Promise.resolve(result.notFound("sync-miss", "Missing.")), {
+  const output = await tracer.wrapPromise(Promise.resolve(result.notFound("syncMiss")), {
     label: "sync.result",
   });
 

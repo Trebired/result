@@ -12,17 +12,18 @@ import {
 } from "#index";
 
 test("summarizes failed results with normalized codes and previews", () => {
-  const summary = summarizeFailedResult(result.conflict("Bad Code!", "Nope.", {
-    data: {
-      id: "project_42",
-    },
-    details: {
-      changed: false,
-    },
-    meta: {
+  const failed = Object.assign(result.conflict("badCode", {
       requestId: "req_1",
-    },
-  }), {
+    }), {
+      data: {
+        id: "project_42",
+      },
+      details: {
+        changed: false,
+      },
+    });
+
+  const summary = summarizeFailedResult(failed, {
     maxDepth: 2,
     maxItems: 4,
     maxStringLength: 40,

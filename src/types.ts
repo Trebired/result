@@ -37,18 +37,6 @@ export type ResultLike<
   meta?: TMeta;
 } & Record<string, unknown>;
 
-export interface ResultInit<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
-> {
-  data?: TData | null;
-  details?: TDetails;
-  redirect?: string;
-  meta?: TMeta;
-  error?: boolean;
-}
-
 export interface ResultPreset {
   status?: number;
   title?: string;
@@ -73,50 +61,30 @@ export interface ResolveResultPresetInput<TType extends string = string> {
   type?: TType | null;
 }
 
-export interface ResultRespondInput<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
-> {
-  req?: Req;
-  res: Res;
-  result: ResultLike | null | undefined;
-  render?: boolean;
+export type ResultI18nBundle = {
+  [key: string]: string | ResultI18nBundle;
+};
+
+export type ResultI18nCatalog = Record<string, ResultI18nBundle | undefined>;
+
+export type ResultRenderMode = boolean | "auto" | "json" | "text";
+
+export interface ResultRespondOptions<TType extends string = string> {
+  i18n?: ResultI18nCatalog;
+  render?: ResultRenderMode;
   type?: TType;
   title?: string;
   message?: string;
   details?: unknown;
   view?: string;
   meta?: ResultMetadata;
-  successMessage?: string;
 }
 
-export interface ResultResponderContextBase<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
-> {
-  req?: Req;
-  res: Res;
-  input: ResultRespondInput<Req, Res, TType>;
-  result: ResultLike;
-  level: ResultLevel;
-  status: number;
-}
-
-export interface ResultRenderModeContext<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
-> extends ResultResponderContextBase<Req, Res, TType> {}
-
-export interface ResultJsonContext<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
-> extends ResultResponderContextBase<Req, Res, TType> {
-  payload: ResultLike;
-}
+export interface ResultPayload<
+  TData = unknown,
+  TDetails = unknown,
+  TMeta extends ResultMetadata = ResultMetadata,
+> extends ResultLike<TData, TDetails, TMeta> {}
 
 export interface ResultRenderModel<TType extends string = string> {
   level: ResultLevel;
@@ -129,49 +97,25 @@ export interface ResultRenderModel<TType extends string = string> {
   meta: ResultMetadata;
   error_code: string;
   redirect: string | null;
-  preset: ResultPreset;
-  renderModePath: string;
-}
-
-export interface ResultRenderContext<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
-> extends ResultResponderContextBase<Req, Res, TType> {
-  model: ResultRenderModel<TType>;
-}
-
-export interface ResultTextContext<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
-> extends ResultRenderContext<Req, Res, TType> {
-  text: string;
-  cause: "fallback" | "no-renderer";
-  renderError?: unknown;
+  payload: ResultPayload;
 }
 
 export interface ResultResponderConfig<
-  Req = unknown,
-  Res = unknown,
+  Ctx = unknown,
   TType extends string = string,
 > {
-  presets?: ResultPresetMap<TType>;
   logger?: ResultLogger;
   loggerAdapter?: ResultLoggerAdapter;
-  json(context: ResultJsonContext<Req, Res, TType>): MaybePromise<unknown>;
-  render?(context: ResultRenderContext<Req, Res, TType>): MaybePromise<unknown>;
-  text(context: ResultTextContext<Req, Res, TType>): MaybePromise<unknown>;
-  getRenderModePath?(context: ResultRenderModeContext<Req, Res, TType>): string | null | undefined;
+  getLanguage?(context: Ctx): string | null | undefined;
+  sendJson(context: Ctx, payload: ResultPayload): MaybePromise<unknown>;
+  sendText(context: Ctx, status: number, text: string): MaybePromise<unknown>;
+  render?(context: Ctx, model: ResultRenderModel<TType>): MaybePromise<unknown>;
 }
 
-export interface ResultResponder<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
-> {
-  respond(input: ResultRespondInput<Req, Res, TType>): MaybePromise<unknown>;
-  resolvePreset(input: Omit<ResolveResultPresetInput<TType>, "presets">): ResultPreset;
-}
+export type ResultResponder<Ctx = unknown, TType extends string = string> = (
+  context: Ctx,
+  result: ResultLike | null | undefined,
+  options?: ResultRespondOptions<TType>,
+) => MaybePromise<unknown>;
 
 export type * from "./trace/types.js";

@@ -2,164 +2,193 @@ import {
   defaultResultMessage,
   defaultResultTitle,
   defaultTextFallback,
+  extractResultExtras,
   formatErrorMessage,
+  getResultLevel,
   hasOwn,
+  isObject,
+  mergeMetadata,
   normalizeResultErrorCode,
+  normalizeResultLike,
+  toResultStatus,
 } from "#shared";
 import type {
   NormalizedResultLogger,
+  ResultI18nBundle,
   ResultLike,
-  ResultPreset,
-  ResultRenderContext,
+  ResultMetadata,
+  ResultPayload,
+  ResultRenderModel,
   ResultResponderConfig,
-  ResultResponderContextBase,
-  ResultRespondInput,
-  ResultTextContext,
+  ResultRespondOptions,
 } from "#types";
 
-function createTextContext<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
->(
-  context: ResultRenderContext<Req, Res, TType>,
-  cause: "fallback" | "no-renderer",
-  renderError?: unknown,
-): ResultTextContext<Req, Res, TType> {
+function shapeResultPayload<Ctx = unknown, TType extends string = string>(
+  resultLike: ResultLike | null | undefined,
+  config: ResultResponderConfig<Ctx, TType>,
+  context: Ctx,
+  options: ResultRespondOptions<TType> = {},
+): ResultPayload {
+  const result = normalizeResultLike(resultLike);
+  const level = getResultLevel(result);
+  const status = toResultStatus(result.status, level === "error" ? 400 : 200);
+  const meta = mergeMetadata(isObject(result.meta) ? result.meta : null, options.meta);
+  const payload: ResultPayload = {
+    ok: level !== "error",
+    error: level === "error" ? result.error !== false : false,
+    noop: level === "noop",
+    status,
+    error_code: resolveErrorCode(level, status, result),
+    message: resolveLocalizedMessage(result, config, context, options, meta),
+    data: hasOwn(result, "data") ? (result.data ?? null) : null,
+  };
+
+  if (hasOwn(result, "details") && result.details !== undefined) {
+    payload.details = result.details;
+  }
+
+  if (typeof result.redirect === "string" && result.redirect.length > 0) {
+    payload.redirect = result.redirect;
+  }
+
+  if (Object.keys(meta).length > 0) {
+    payload.meta = meta;
+  }
+
+  Object.assign(payload, extractResultExtras(result));
+  return payload;
+}
+
+function buildRenderModel<TType extends string = string>(
+  payload: ResultPayload,
+  options: ResultRespondOptions<TType> = {},
+): ResultRenderModel<TType> {
+  const level = getResultLevel(payload);
+  const type = (options.type || "") as TType | "";
+  const title = resolveTitle(level, payload.status, options);
+
   return {
-    ...context,
-    text: defaultTextFallback(context.model.level, context.model.status, context.model.title),
-    cause,
-    renderError,
+    level,
+    status: payload.status,
+    type,
+    title,
+    message: payload.message,
+    view: resolveView(options),
+    details: hasOwn(payload, "details") ? payload.details : options.details,
+    meta: mergeMetadata(isObject(payload.meta) ? payload.meta : null, options.meta),
+    error_code: payload.error_code,
+    redirect: typeof payload.redirect === "string" && payload.redirect.length > 0 ? payload.redirect : null,
+    payload,
   };
 }
 
-function handleRenderFailure<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
->(
-  config: ResultResponderConfig<Req, Res, TType>,
-  logger: NormalizedResultLogger | null,
-  context: ResultRenderContext<Req, Res, TType>,
-  error: unknown,
-) {
-  logger?.error("trebired.result.responder", "render-failed", {
-    level: context.level,
-    status: context.model.status,
-    type: context.model.type || null,
-    view: context.model.view,
-    error: formatErrorMessage(error),
-    ...context.model.meta,
+function resolveLocalizedMessage<Ctx = unknown, TType extends string = string>(
+  result: ResultLike,
+  config: ResultResponderConfig<Ctx, TType>,
+  context: Ctx,
+  options: ResultRespondOptions<TType>,
+  meta: ResultMetadata,
+): string {
+  if (typeof options.message === "string" && options.message.trim()) {
+    return interpolateMessage(options.message, meta);
+  }
+
+  const key = typeof result.message === "string" && result.message.trim()
+    ? result.message
+    : defaultResultMessage(getResultLevel(result), result.status);
+
+  return translateMessage(key, {
+    bundle: options.i18n,
+    language: config.getLanguage?.(context),
+    variables: meta,
   });
-
-  return config.text(createTextContext(context, "fallback", error));
 }
 
-function resolveMessage<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
->(
-  level: ResultResponderContextBase<Req, Res, TType>["level"],
-  status: number,
-  result: ResultLike,
-  input: ResultRespondInput<Req, Res, TType>,
-  preset?: ResultPreset,
+function translateMessage(
+  key: string,
+  options: {
+    bundle?: Record<string, ResultI18nBundle | undefined>;
+    language?: string | null | undefined;
+    variables?: ResultMetadata;
+  },
 ): string {
-  if ((level === "ok" || level === "noop") && typeof input.successMessage === "string" && input.successMessage.trim()) {
-    return input.successMessage;
-  }
-
-  if (typeof input.message === "string" && input.message.trim()) {
-    return input.message;
-  }
-
-  if (typeof result.message === "string" && result.message.trim()) {
-    return result.message;
-  }
-
-  if (typeof preset?.message === "string" && preset.message.trim()) {
-    return preset.message;
-  }
-
-  return defaultResultMessage(level, status);
+  const template = lookupLocalizedTemplate(key, options.bundle, options.language);
+  return interpolateMessage(template || key, options.variables || {});
 }
 
-function resolveTitle<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
->(
-  level: ResultResponderContextBase<Req, Res, TType>["level"],
-  status: number,
-  result: ResultLike,
-  input: ResultRespondInput<Req, Res, TType>,
-  preset: ResultPreset,
+function lookupLocalizedTemplate(
+  key: string,
+  bundle: Record<string, ResultI18nBundle | undefined> | undefined,
+  language: string | null | undefined,
 ): string {
-  const titleFromResult = typeof result.title === "string" ? result.title : "";
-
-  if (typeof input.title === "string" && input.title.trim()) {
-    return input.title;
+  if (!bundle) {
+    return "";
   }
 
-  if (titleFromResult.trim()) {
-    return titleFromResult;
+  for (const candidate of languageCandidates(language)) {
+    const value = lookupBundleValue(bundle[candidate], key);
+
+    if (typeof value === "string") {
+      return value;
+    }
   }
 
-  if (typeof preset.title === "string" && preset.title.trim()) {
-    return preset.title;
-  }
-
-  return defaultResultTitle(level, status);
+  return "";
 }
 
-function resolveView<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
->(
-  result: ResultLike,
-  input: ResultRespondInput<Req, Res, TType>,
-  preset: ResultPreset,
-): string | null {
-  const viewFromResult = typeof result.view === "string" ? result.view : "";
+function languageCandidates(language: string | null | undefined): string[] {
+  const normalized = typeof language === "string" ? language.trim().toLowerCase().replace(/_/gu, "-") : "";
+  const candidates = [];
 
-  if (typeof input.view === "string" && input.view.trim()) {
-    return input.view;
+  if (normalized) {
+    candidates.push(normalized);
+    const base = normalized.split("-")[0];
+
+    if (base && base !== normalized) {
+      candidates.push(base);
+    }
   }
 
-  if (viewFromResult.trim()) {
-    return viewFromResult;
-  }
-
-  if (typeof preset.view === "string" && preset.view.trim()) {
-    return preset.view;
-  }
-
-  return null;
+  candidates.push("en");
+  return Array.from(new Set(candidates));
 }
 
-function resolveDetails<
-  Req = unknown,
-  Res = unknown,
-  TType extends string = string,
->(
-  result: ResultLike,
-  input: ResultRespondInput<Req, Res, TType>,
-): unknown {
-  if (input.details !== undefined) {
-    return input.details;
+function lookupBundleValue(bundle: ResultI18nBundle | undefined, key: string): unknown {
+  let current: unknown = bundle;
+
+  for (const segment of key.split(".")) {
+    if (!segment || !isObject(current)) {
+      return undefined;
+    }
+
+    current = current[segment];
   }
 
-  if (hasOwn(result, "details")) {
-    return result.details;
-  }
-
-  return undefined;
+  return current;
 }
 
-function resolveErrorCode(level: ResultRenderContext["level"], status: number, result: ResultLike): string {
+function interpolateMessage(template: string, variables: ResultMetadata): string {
+  return template.replace(/\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}|\{([A-Za-z0-9_.-]+)\}/gu, (match, doubleKey, singleKey) => {
+    const value = lookupVariable(variables, doubleKey || singleKey);
+    return value == null ? match : String(value);
+  });
+}
+
+function lookupVariable(variables: ResultMetadata, key: string): unknown {
+  let current: unknown = variables;
+
+  for (const segment of key.split(".")) {
+    if (!segment || !isObject(current)) {
+      return undefined;
+    }
+
+    current = current[segment];
+  }
+
+  return current;
+}
+
+function resolveErrorCode(level: "ok" | "noop" | "error", status: number, result: ResultLike): string {
   const normalized = normalizeResultErrorCode(result.error_code);
 
   if (normalized) {
@@ -181,12 +210,45 @@ function resolveErrorCode(level: ResultRenderContext["level"], status: number, r
   return "failed";
 }
 
+function resolveTitle<TType extends string>(
+  level: "ok" | "noop" | "error",
+  status: number,
+  options: ResultRespondOptions<TType>,
+): string {
+  if (typeof options.title === "string" && options.title.trim()) {
+    return options.title;
+  }
+
+  return defaultResultTitle(level, status);
+}
+
+function resolveView<TType extends string>(options: ResultRespondOptions<TType>): string | null {
+  return typeof options.view === "string" && options.view.trim() ? options.view : null;
+}
+
+function handleRenderFailure<Ctx = unknown, TType extends string = string>(
+  config: ResultResponderConfig<Ctx, TType>,
+  logger: NormalizedResultLogger | null,
+  context: Ctx,
+  model: ResultRenderModel<TType>,
+  error: unknown,
+) {
+  logger?.error("trebired.result.responder", "render-failed", {
+    level: model.level,
+    status: model.status,
+    type: model.type || null,
+    view: model.view,
+    error: formatErrorMessage(error),
+    ...model.meta,
+  });
+
+  return config.sendText(context, model.status, defaultTextFallback(model.level, model.status, model.title));
+}
+
 export {
-  createTextContext,
+  buildRenderModel,
   handleRenderFailure,
-  resolveDetails,
-  resolveErrorCode,
-  resolveMessage,
-  resolveTitle,
-  resolveView,
+  interpolateMessage,
+  shapeResultPayload,
+  translateMessage,
 };

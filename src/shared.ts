@@ -32,14 +32,16 @@ function toResultStatus(input: unknown, fallback: number): number {
 }
 
 function normalizeResultErrorCode(input: unknown): string {
-  const current = typeof input === "string" ? input.trim().toLowerCase() : "";
+  const current = typeof input === "string" ? input.trim() : "";
 
   if (!current) {
     return "";
   }
 
   return current
-    .replace(/[^a-z0-9-]+/gu, "-")
+    .replace(/([a-z0-9])([A-Z])/gu, "$1-$2")
+    .replace(/[^A-Za-z0-9-]+/gu, "-")
+    .toLowerCase()
     .replace(/-+/gu, "-")
     .replace(/^-+|-+$/gu, "");
 }
