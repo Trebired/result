@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Removed the redundant explicit `.tmp` discipline ignore entry and kept generated/temp/report ignores in `.gitignore` through shared `use_gitignore` handling.
+
 ## 1.0.0
 
 - Added first-class generic responder support with caller-provided JSON, text, render, and language callbacks.

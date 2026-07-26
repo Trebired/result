@@ -2,9 +2,7 @@ import { defineCodeDisciplineConfig } from "@trebired/code-discipline";
 
 export default defineCodeDisciplineConfig({
   ignore: {
-    entries: [
-      { type: "folder", pattern: ".tmp" },
-    ],
+    entries: [],
     use_gitignore: true,
   },
   rules: {
