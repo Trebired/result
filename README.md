@@ -1,15 +1,15 @@
 # @trebired/result
 
-Shared result builders, backend/system responder helpers, local i18n lookup, and failure tracing for Bun and Node.js packages.
+Shared result builders, backend/system responder helpers, local i18n lookup, and failure tracing for Bun packages.
 
 `@trebired/result` is transport-agnostic. It does not import web frameworks, route files, frontend code, app registries, global dictionaries, or generated i18n state. Callers provide the delivery callbacks and local translation bundles.
 
 ## Install
 
-Runtime support: Bun 1+ and Node.js 18+.
+Runtime support: Bun 1+.
 
 ```sh
-npm install @trebired/result
+bun i @trebired/result
 ```
 
 ## Quick Start
