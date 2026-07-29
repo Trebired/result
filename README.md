@@ -325,7 +325,3 @@ This package does not:
 - own HTTP framework routing
 - choose application i18n policy
 - replace domain error modeling
-
-## License
-
-Licensed under MIT. See [LICENSE](./LICENSE).
