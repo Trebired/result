@@ -53,7 +53,9 @@ return respond(ctx, result.badRequest("missingPassword", { message: true, min: 8
 });
 ```
 
-## Result Builders
+## Concepts
+
+### Result Builders
 
 The normal builder shape is key-first:
 
@@ -115,7 +117,7 @@ Builder helpers:
 - `result.gatewayTimeout(status_code?, payload?)`
 - `result.internal(status_code?, payload?)`
 
-## Local I18n
+### Local I18n
 
 Pass local bundles at respond time:
 
@@ -151,7 +153,7 @@ Translation rules:
 
 There is no global registry, generated dictionary source, or `globalThis` lookup.
 
-## Responder
+### Responder
 
 `createResponder(config)` returns a callable responder:
 
@@ -177,7 +179,7 @@ Dispatch options:
 
 The package also exports `respond(ctx, result, options, config)` for callers that want a one-shot helper instead of a preconfigured responder.
 
-## Tracing Toolkit
+### Tracing Toolkit
 
 Tracing is fully opt-in. Nothing patches the runtime unless you call a tracing API.
 
@@ -205,7 +207,7 @@ tracer.traceFailure(result.notFound("projectMissing"), {
 - wrapper and proxy caches
 - optional process and module hooks
 
-## Wrapping Functions And Promises
+### Wrapping Functions And Promises
 
 Use wrappers when you want tracing without rewriting the function body:
 
@@ -235,7 +237,9 @@ Wrappers preserve original behavior:
 - thrown and rejected failures are traced
 - the same function or promise is not wrapped twice inside the same tracer runtime
 
-## Presets
+## Configuration
+
+### Presets
 
 The package still exports generic preset helpers for callers that want shared status/title defaults:
 
@@ -264,6 +268,8 @@ const preset = resolveResultPreset({
 ```
 
 ## Public API
+
+### Runtime Exports
 
 Runtime exports:
 
@@ -311,3 +317,15 @@ Runtime exports:
 - `summarizeFailedResult`
 
 Type exports include result, responder, i18n, preset, and tracing types used by those APIs.
+
+## What It Does Not Do
+
+This package does not:
+
+- own HTTP framework routing
+- choose application i18n policy
+- replace domain error modeling
+
+## License
+
+Licensed under MIT. See [LICENSE](./LICENSE).
