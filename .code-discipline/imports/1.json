@@ -2,6 +2,7 @@
   "#0231fmpa2dc7": "./src/trace/runtime.ts",
   "#0g27abpmv4cx": "./src/process_hooks.ts",
   "#49kqgj47729a": "./src/module_hooks.ts",
+  "#64bp6qrycvs2": "./scripts/build/generated/tsconfig.mjs",
   "#9u38bvr71ysb": "./src/logging.ts",
   "#d86qbh1bojkk": "./scripts/prepare-dist.mjs",
   "#f50kks3ik0zv": "./src/instrument_result_exports.ts",
