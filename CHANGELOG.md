@@ -4,6 +4,10 @@ All notable changes to `@trebired/result` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 1.1.7
+
+- Refreshed package dependency ranges and lockfile state with `bun update` after adopting the `.trebired/code-discipline` structure.
+
 ## 1.1.6
 
 - Moved Code Discipline config, alias-map state, generated tsconfig paths, and reports to `.trebired/code-discipline/`.
