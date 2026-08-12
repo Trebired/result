@@ -1,16 +1,16 @@
 import type { ResultLevel, ResultLike, ResultMetadata } from "#types";
 
 const RESULT_CORE_KEYS = new Set([
-  "ok",
-  "error",
-  "noop",
-  "status",
-  "status_code",
-  "message",
-  "data",
-  "details",
-  "redirect",
-  "meta",
+    "ok",
+    "error",
+    "noop",
+    "status",
+    "status_code",
+    "message",
+    "data",
+    "details",
+    "redirect",
+    "meta",
 ]);
 
 const DEFAULT_ERROR_TITLES: Record<number, string> = {
@@ -65,9 +65,9 @@ function normalizeResultStatusCode(input: unknown): string {
   }
 
   return current
-    .replace(/\s+/gu, "-")
-    .replace(/-+/gu, "-")
-    .replace(/^-+|-+$/gu, "");
+  .replace(/\s+/gu, "-")
+  .replace(/-+/gu, "-")
+  .replace(/^-+|-+$/gu, "");
 }
 
 function getResultLevel(resultLike: unknown): ResultLevel {
@@ -218,8 +218,8 @@ function formatErrorMessage(error: unknown): string {
   return typeof error === "string" ? error : String(error);
 }
 
-function isPromiseLike<T = unknown>(value: unknown): value is PromiseLike<T> {
-  return typeof value === "object" && value != null && typeof (value as PromiseLike<T>).then === "function";
+function isPromiseLike<T=unknown>(value: unknown): value is PromiseLike<T> {
+  return typeof value === "object" && value != null && typeof(value as PromiseLike<T>).then === "function";
 }
 
 export {

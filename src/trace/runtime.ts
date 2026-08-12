@@ -9,11 +9,11 @@ import type {
   ResultTracer,
 } from "./types.js";
 
-const RESULT_TRACER_RUNTIME_SYMBOL = Symbol.for("@package/result/runtime");
+const RESULT_TRACER_RUNTIME_SYMBOL = Symbol.for ("@package/result/runtime");
 
 const DEFAULT_TRACE_CONFIG = {
   enabled: true,
-  failedResultSeverity: "error" as const,
+  failedResultSeverity: "error"as const,
   objectDepth: 3,
   stackDepth: 8,
 };
@@ -88,8 +88,8 @@ function createRuntimeState(config: ReturnType<typeof resolveTraceConfig>) {
     promiseCache: new WeakMap<Promise<unknown>, Map<string, Promise<unknown>>>(),
     objectCache: new WeakMap<object, Map<string, unknown>>(),
     tracedObjects: new WeakSet<object>(),
-    processHooks: new Map<object, { installed: boolean; uninstall(): void }>(),
-    moduleHooks: new Map<object, { installed: boolean; uninstall(): void }>(),
+    processHooks: new Map<object, {installed:boolean;uninstall():void}>(),
+    moduleHooks: new Map<object, {installed:boolean;uninstall():void}>(),
     moduleFailureKeys: new Set<string>(),
   };
 }
@@ -107,16 +107,20 @@ function resetRuntimeState(state: ReturnType<typeof createRuntimeState>) {
   state.functionCache = new WeakMap<Function, Map<string, Function>>();
   state.promiseCache = new WeakMap<Promise<unknown>, Map<string, Promise<unknown>>>();
   state.objectCache = new WeakMap<object, Map<string, unknown>>();
-  state.processHooks = new Map<object, { installed: boolean; uninstall(): void }>();
-  state.moduleHooks = new Map<object, { installed: boolean; uninstall(): void }>();
+  state.processHooks = new Map<object, {installed:boolean;uninstall():void}>();
+  state.moduleHooks = new Map<object, {installed:boolean;uninstall():void}>();
   state.moduleFailureKeys.clear();
 }
 
-function readTracerRuntime(tracer?: ResultTracer): ReturnType<typeof createResultTraceRuntime> | null {
+function readTracerRuntime(tracer?: ResultTracer): ReturnType<typeof createResultTraceRuntime>|null {
   const runtime = tracer
-    ? (tracer as unknown as Record<PropertyKey, unknown>)[RESULT_TRACER_RUNTIME_SYMBOL]
-    : null;
-  return (runtime || null) as ReturnType<typeof createResultTraceRuntime> | null;
+  ? (tracer as unknown as Record<PropertyKey, unknown>)[RESULT_TRACER_RUNTIME_SYMBOL]
+  : null;
+  return (runtime || null) as ReturnType<typeof createResultTraceRuntime>|null;
+}
+
+function resolveResultTraceRuntime(config: ResultTraceConfig& { tracer?: ResultTracer }) {
+  return readTracerRuntime(config.tracer) || createResultTraceRuntime(config);
 }
 
 function getCachedEntry<TKey extends object, TValue>(
@@ -141,18 +145,18 @@ function setCachedEntry<TKey extends object, TValue>(
 
 function buildTraceMeta(record: ResultTraceRecord) {
   return mergeMetadata({
-    kind: record.kind,
-    label: record.label,
-    status_code: record.status_code,
-    status: record.status,
-    failure_site: record.failureSite,
-    trace_stack: record.traceStack,
-    argument_preview: record.argumentPreview,
-    metadata_summary: record.metadataSummary,
-    data_summary: record.dataSummary,
-    details_summary: record.detailsSummary,
-    source: record.source,
-    compact_stack: record.compactStack,
+      kind: record.kind,
+      label: record.label,
+      status_code: record.status_code,
+      status: record.status,
+      failure_site: record.failureSite,
+      trace_stack: record.traceStack,
+      argument_preview: record.argumentPreview,
+      metadata_summary: record.metadataSummary,
+      data_summary: record.dataSummary,
+      details_summary: record.detailsSummary,
+      source: record.source,
+      compact_stack: record.compactStack,
   });
 }
 
@@ -165,9 +169,9 @@ function emitTraceRecord(
   }
 
   runTraceSideEffect(() => selectTraceMethod(logger, record.severity)(
-    RESULT_TRACE_LOG_GROUP,
-    record.message,
-    buildTraceMeta(record),
+      RESULT_TRACE_LOG_GROUP,
+      record.message,
+      buildTraceMeta(record),
   ));
 }
 
@@ -175,8 +179,8 @@ function runTraceSideEffect(effect: () => unknown) {
   try {
     const output = effect();
 
-    if (output && typeof (output as PromiseLike<unknown>).then === "function") {
-      Promise.resolve(output).catch(() => {});
+    if (output && typeof(output as PromiseLike<unknown>).then === "function") {
+      Promise.resolve(output).catch (() => {});
     }
   } catch {}
 }
@@ -201,5 +205,6 @@ export {
   createResultTraceRuntime,
   getCachedEntry,
   readTracerRuntime,
+  resolveResultTraceRuntime,
   setCachedEntry,
 };

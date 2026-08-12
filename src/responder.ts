@@ -13,7 +13,7 @@ import type {
   ResultRespondOptions,
 } from "#types";
 
-function createResponder<Ctx = unknown, TType extends string = string>(
+function createResponder<Ctx=unknown, TType extends string=string>(
   config: ResultResponderConfig<Ctx, TType>,
 ): ResultResponder<Ctx, TType> {
   return function configuredRespond(
@@ -25,7 +25,7 @@ function createResponder<Ctx = unknown, TType extends string = string>(
   };
 }
 
-function respond<Ctx = unknown, TType extends string = string>(
+function respond<Ctx=unknown, TType extends string=string>(
   context: Ctx,
   result: ResultLike | null | undefined,
   options: ResultRespondOptions<TType>,
@@ -54,7 +54,7 @@ function respond<Ctx = unknown, TType extends string = string>(
   return config.sendJson(context, payload);
 }
 
-function renderWithFallback<Ctx = unknown, TType extends string = string>(
+function renderWithFallback<Ctx=unknown, TType extends string=string>(
   config: ResultResponderConfig<Ctx, TType>,
   logger: ReturnType<typeof resolveLogger>,
   context: Ctx,
@@ -64,7 +64,7 @@ function renderWithFallback<Ctx = unknown, TType extends string = string>(
     const rendered = config.render?.(context, model);
 
     if (isPromiseLike(rendered)) {
-      return Promise.resolve(rendered).catch((error: unknown) => handleRenderFailure(config, logger, context, model, error));
+      return Promise.resolve(rendered).catch ((error: unknown) => handleRenderFailure(config, logger, context, model, error));
     }
 
     return rendered;

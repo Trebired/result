@@ -92,9 +92,9 @@ const DEFAULT_RESULT_PRESETS: ResultPresetMap = {
   },
 };
 
-function mergeResultPresets<TType extends string = string>(
-  base: ResultPresetMap<TType> | null | undefined,
-  override: ResultPresetMap<TType> | null | undefined,
+function mergeResultPresets<TType extends string=string>(
+  base: ResultPresetMap<TType>|null | undefined,
+  override: ResultPresetMap<TType>|null | undefined,
 ): ResultPresetMap<TType> {
   const levels: ResultLevel[] = ["ok", "noop", "error"];
   const out: ResultPresetMap<TType> = {};
@@ -110,27 +110,27 @@ function mergeResultPresets<TType extends string = string>(
   return out;
 }
 
-function resolveResultPreset<TType extends string = string>({
-  presets,
-  level,
-  status,
-  type,
-}: ResolveResultPresetInput<TType>): ResultPreset {
+function resolveResultPreset<TType extends string=string>({
+    presets,
+    level,
+    status,
+    type,
+  }: ResolveResultPresetInput<TType>): ResultPreset {
   const merged = mergeResultPresets(DEFAULT_RESULT_PRESETS, presets);
   const group = merged[level];
   const resolvedStatus = toResultStatus(status, defaultResultStatus(level));
   const fallback = createFallbackPreset(level, resolvedStatus);
   const resolved = group
-    ? resolvePresetFromGroup(group, resolvedStatus, type)
-    : {};
+  ? resolvePresetFromGroup(group, resolvedStatus, type)
+  : {};
 
   return mergePresetEntries(fallback, resolved);
 }
 
-function mergePresetGroup<TType extends string = string>(
-  base: ResultPresetGroup<TType> | undefined,
-  override: ResultPresetGroup<TType> | undefined,
-): ResultPresetGroup<TType> | undefined {
+function mergePresetGroup<TType extends string=string>(
+  base: ResultPresetGroup<TType>|undefined,
+  override: ResultPresetGroup<TType>|undefined,
+): ResultPresetGroup<TType>|undefined {
   if (!base && !override) {
     return undefined;
   }
@@ -138,13 +138,13 @@ function mergePresetGroup<TType extends string = string>(
   const baseTypes = base?.types || {};
   const overrideTypes = override?.types || {};
   const typeKeys = new Set([
-    ...Object.keys(baseTypes),
-    ...Object.keys(overrideTypes),
+      ...Object.keys(baseTypes),
+      ...Object.keys(overrideTypes),
   ]);
   const types = Object.fromEntries(
     Array.from(typeKeys)
-      .map((key) => [key, mergePresetGroup(baseTypes[key], overrideTypes[key])])
-      .filter((entry) => Boolean(entry[1])),
+    .map((key) => [key, mergePresetGroup(baseTypes[key], overrideTypes[key])])
+    .filter((entry) => Boolean(entry[1])),
   );
 
   const statuses = {
@@ -170,7 +170,7 @@ function mergePresetGroup<TType extends string = string>(
   return out;
 }
 
-function resolvePresetFromGroup<TType extends string = string>(
+function resolvePresetFromGroup<TType extends string=string>(
   group: ResultPresetGroup<TType>,
   status: number,
   type: TType | null | undefined,
@@ -210,7 +210,7 @@ function createFallbackPreset(level: ResultLevel, status: number): ResultPreset 
   };
 }
 
-function mergePresetEntries(...items: Array<ResultPreset | undefined>): ResultPreset {
+function mergePresetEntries(...items: Array<ResultPreset|undefined>): ResultPreset {
   const out: ResultPreset = {};
   let mergedMeta: ResultMetadata | null = null;
 

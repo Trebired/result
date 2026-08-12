@@ -3,12 +3,12 @@ import type { MaybePromise, ResultLike, ResultLogger, ResultLoggerAdapter } from
 export type ResultTraceSeverity = "debug" | "info" | "warn" | "error";
 
 export type ResultTraceKind =
-  | "throw"
-  | "reject"
-  | "result"
-  | "uncaught-exception"
-  | "unhandled-rejection"
-  | "module-load";
+|"throw"
+|"reject"
+|"result"
+|"uncaught-exception"
+|"unhandled-rejection"
+|"module-load";
 
 export interface ResultTracePreviewConfig {
   maxDepth?: number;
@@ -17,10 +17,10 @@ export interface ResultTracePreviewConfig {
 }
 
 export type ResultTraceFilter =
-  | string
-  | RegExp
-  | ((target: string) => boolean)
-  | Array<string | RegExp | ((target: string) => boolean)>;
+|string
+|RegExp
+|((target: string) => boolean)
+|Array<string|RegExp|((target:string)=>boolean)>;
 
 export interface ResultTraceRecord {
   createdAt: string;
@@ -55,7 +55,7 @@ export interface ResultTraceConfig {
   enabled?: boolean;
   logger?: ResultLogger;
   loggerAdapter?: ResultLoggerAdapter;
-  onTrace?(record: ResultTraceRecord): MaybePromise<void>;
+  onTrace ? (record: ResultTraceRecord) : MaybePromise<void>;
   include?: ResultTraceFilter;
   exclude?: ResultTraceFilter;
   objectDepth?: number;
@@ -83,9 +83,9 @@ export interface ResultTraceCallSite {
 
 export interface ResultTraceProcessLike {
   on(event: string, listener: (...args: any[]) => void): void;
-  off?(event: string, listener: (...args: any[]) => void): void;
-  removeListener?(event: string, listener: (...args: any[]) => void): void;
-  exit?(code?: number): void;
+  off ? (event: string, listener: (...args: any[]) => void) : void;
+  removeListener ? (event: string, listener: (...args: any[]) => void) : void;
+  exit ? (code?: number) : void;
 }
 
 export type ResultProcessExitHandler = (
@@ -95,7 +95,7 @@ export type ResultProcessExitHandler = (
 
 export interface ResultNodeModuleLike {
   _load(request: string, parent?: unknown, isMain?: boolean): unknown;
-  _resolveFilename?(request: string, parent?: unknown, isMain?: boolean): string;
+  _resolveFilename ? (request: string, parent?: unknown, isMain?: boolean) : string;
 }
 
 export interface ResultHookInstallation {
@@ -143,7 +143,7 @@ export interface ResultTracer {
   traceFailure(failure: unknown, options?: ResultTraceContextInput): ResultTraceRecord | null;
   traceResult(result: ResultLike | null | undefined, options?: ResultTraceContextInput): ResultTraceRecord | null;
   traceError(error: unknown, options?: ResultTraceContextInput): ResultTraceRecord | null;
-  wrapFunction<Fn extends (...args: any[]) => any>(fn: Fn, options?: WrapResultFunctionOptions): Fn;
+  wrapFunction<Fn extends(...args:any[])=>any>(fn: Fn, options?: WrapResultFunctionOptions): Fn;
   wrapPromise<T>(promise: Promise<T>, options?: WrapResultPromiseOptions): Promise<T>;
   instrumentExports<T>(target: T, options?: InstrumentResultExportsOptions): T;
   installProcessHooks(options?: ResultProcessHookOptions): ResultHookInstallation;

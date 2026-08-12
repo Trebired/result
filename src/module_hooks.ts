@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 
 import { instrumentResultExportsWithRuntime } from "./instrument_result_exports.js";
 import { traceErrorWithRuntime } from "./trace/capture.js";
-import { createResultTraceRuntime, readTracerRuntime } from "./trace/runtime.js";
+import { createResultTraceRuntime, resolveResultTraceRuntime } from "./trace/runtime.js";
 import { matchTraceTarget, normalizeTraceLabel } from "./trace/utils.js";
 import type {
   ResultHookInstallation,
@@ -15,7 +15,7 @@ const NodeModule = createRequire(import.meta.url)("node:module") as ResultNodeMo
 function installResultModuleHooks(
   options: ResultModuleHookOptions = {},
 ): ResultHookInstallation {
-  const runtime = resolveRuntime(options.tracer, options);
+  const runtime = resolveResultTraceRuntime(options);
   return installResultModuleHooksWithRuntime(runtime, options);
 }
 
@@ -44,9 +44,9 @@ function installResultModuleHooksWithRuntime(
       }
 
       return instrumentResultExportsWithRuntime(runtime, loaded, {
-        ...options,
-        label: buildModuleLabel(options, resolved || request),
-        depth: options.depth,
+          ...options,
+          label: buildModuleLabel(options, resolved || request),
+          depth: options.depth,
       });
     } catch (error) {
       traceModuleLoadFailure(runtime, options, request, resolved, parent, error);
@@ -87,9 +87,9 @@ function traceModuleLoadFailure(
   parent: unknown,
   error: unknown,
 ) {
-  const parentId = typeof (parent as Record<string, unknown> | null)?.filename === "string"
-    ? String((parent as Record<string, unknown>).filename)
-    : "";
+  const parentId = typeof(parent as Record<string, unknown>|null)?.filename === "string"
+  ? String((parent as Record<string, unknown>).filename)
+  : "";
   const dedupeKey = `${request}:${parentId}`;
 
   if (runtime.moduleFailureKeys.has(dedupeKey)) {
@@ -98,11 +98,11 @@ function traceModuleLoadFailure(
 
   runtime.moduleFailureKeys.add(dedupeKey);
   traceErrorWithRuntime(runtime, error, {
-    ...options,
-    kind: "module-load",
-    label: buildModuleLabel(options, request),
-    source: resolved || request,
-    args: parentId ? [parentId] : [],
+      ...options,
+      kind: "module-load",
+      label: buildModuleLabel(options, request),
+      source: resolved || request,
+      args: parentId ? [parentId] : [],
   });
 }
 
@@ -119,18 +119,11 @@ function resolveModuleTarget(
 ): string | null {
   try {
     return typeof target._resolveFilename === "function"
-      ? String(target._resolveFilename(request, parent, isMain))
-      : null;
+    ? String(target._resolveFilename(request, parent, isMain))
+    : null;
   } catch {
     return null;
   }
-}
-
-function resolveRuntime(
-  tracer: ResultModuleHookOptions["tracer"],
-  options: ResultModuleHookOptions,
-) {
-  return readTracerRuntime(tracer) || createResultTraceRuntime(options);
 }
 
 export {

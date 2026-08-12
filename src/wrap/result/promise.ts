@@ -4,7 +4,7 @@ import { captureCallSite, normalizeTraceLabel } from "#ypczi4qi4ap6";
 import { buildPackageLogGroup } from "#ta293zk8h1c4";
 import type { WrapResultPromiseOptions } from "#qsb8x4t06m0e";
 
-const ORIGINAL_PROMISE_SYMBOL = Symbol.for("@package/result/original-promise");
+const ORIGINAL_PROMISE_SYMBOL = Symbol.for ("@package/result/original-promise");
 const RESULT_PROMISE_TRACE_LABEL = buildPackageLogGroup("promise");
 
 function wrapResultPromise<T>(
@@ -32,27 +32,27 @@ function wrapResultPromiseWithRuntime<T>(
   const traceStack = runtime.getTraceStack();
   const wrapped = Promise.resolve(original).then(
     (value) => runtime.runWithTraceStack(traceStack, () => {
-      traceResultWithRuntime(runtime, value as any, {
-        ...options,
-        label,
-        source,
-      });
-      return value;
+        traceResultWithRuntime(runtime, value as any, {
+            ...options,
+            label,
+            source,
+        });
+        return value;
     }),
     (error) => runtime.runWithTraceStack(traceStack, () => {
-      traceErrorWithRuntime(runtime, error, {
-        ...options,
-        kind: "reject",
-        label,
-        source,
-      });
-      throw error;
+        traceErrorWithRuntime(runtime, error, {
+            ...options,
+            kind: "reject",
+            label,
+            source,
+        });
+        throw error;
     }),
   );
 
   Object.defineProperty(wrapped, ORIGINAL_PROMISE_SYMBOL, {
-    value: original,
-    enumerable: false,
+      value: original,
+      enumerable: false,
   });
 
   return setCachedEntry(runtime.promiseCache, original, label, wrapped) as Promise<T>;

@@ -4,67 +4,67 @@ import type { ResultBuilderInput, ResultLike, ResultMetadata } from "#types";
 const RESERVED_RESULT_OPTION_KEYS = new Set(["message", "data", "details", "redirect"]);
 
 function ok<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "success",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
-    ok: true,
-    error: false,
-    noop: false,
-    status: 200,
-    status_code,
-    fallbackStatusCode: "success",
-    input,
+      ok: true,
+      error: false,
+      noop: false,
+      status: 200,
+      status_code,
+      fallbackStatusCode: "success",
+      input,
   });
 }
 
 function noop<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "noop",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
-    ok: true,
-    error: false,
-    noop: true,
-    status: 200,
-    status_code,
-    fallbackStatusCode: "noop",
-    input,
+      ok: true,
+      error: false,
+      noop: true,
+      status: 200,
+      status_code,
+      fallbackStatusCode: "noop",
+      input,
   });
 }
 
 function error<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "failed",
   status = 400,
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
 ): ResultLike<TData, TDetails, TMeta> {
   return createResult({
-    ok: false,
-    error: true,
-    noop: false,
-    status: toResultStatus(status, 400),
-    status_code,
-    fallbackStatusCode: "failed",
-    input,
+      ok: false,
+      error: true,
+      noop: false,
+      status: toResultStatus(status, 400),
+      status_code,
+      fallbackStatusCode: "failed",
+      input,
   });
 }
 
 function badRequest<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "bad-request",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -73,9 +73,9 @@ function badRequest<
 }
 
 function unauthorized<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "unauthorized",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -84,9 +84,9 @@ function unauthorized<
 }
 
 function forbidden<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "forbidden",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -95,9 +95,9 @@ function forbidden<
 }
 
 function notFound<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "not-found",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -106,9 +106,9 @@ function notFound<
 }
 
 function conflict<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "conflict",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -117,9 +117,9 @@ function conflict<
 }
 
 function unprocessable<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "unprocessable-entity",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -128,9 +128,9 @@ function unprocessable<
 }
 
 function tooManyRequests<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "too-many-requests",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -139,9 +139,9 @@ function tooManyRequests<
 }
 
 function badGateway<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "bad-gateway",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -150,9 +150,9 @@ function badGateway<
 }
 
 function unavailable<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "unavailable",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -161,9 +161,9 @@ function unavailable<
 }
 
 function gatewayTimeout<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "gateway-timeout",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -172,9 +172,9 @@ function gatewayTimeout<
 }
 
 function internal<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >(
   status_code = "internal-error",
   input?: ResultBuilderInput<TData, TDetails, TMeta>,
@@ -200,25 +200,25 @@ const result = {
 } as const;
 
 function createResult<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 >({
-  ok,
-  error,
-  noop,
-  status,
-  status_code,
-  fallbackStatusCode,
-  input,
-}: {
-  ok: boolean;
-  error: boolean;
-  noop: boolean;
-  status: number;
-  status_code: string;
-  fallbackStatusCode: string;
-  input?: ResultBuilderInput<TData, TDetails, TMeta>;
+    ok,
+    error,
+    noop,
+    status,
+    status_code,
+    fallbackStatusCode,
+    input,
+  }: {
+    ok: boolean;
+    error: boolean;
+    noop: boolean;
+    status: number;
+    status_code: string;
+    fallbackStatusCode: string;
+    input?: ResultBuilderInput<TData, TDetails, TMeta>;
 }): ResultLike<TData, TDetails, TMeta> {
   const options: Record<string, unknown> = isObject(input) ? input : {};
   const out: ResultLike<TData, TDetails, TMeta> = {

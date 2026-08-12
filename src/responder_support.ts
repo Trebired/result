@@ -37,7 +37,7 @@ const FALLBACK_ERROR_STATUS_CODES: Record<number, string> = {
 };
 const RESULT_RESPONDER_LOG_GROUP = buildPackageLogGroup("responder");
 
-function shapeResultPayload<Ctx = unknown, TType extends string = string>(
+function shapeResultPayload<Ctx=unknown, TType extends string=string>(
   resultLike: ResultLike | null | undefined,
   config: ResultResponderConfig<Ctx, TType>,
   context: Ctx,
@@ -73,12 +73,12 @@ function shapeResultPayload<Ctx = unknown, TType extends string = string>(
   return payload;
 }
 
-function buildRenderModel<TType extends string = string>(
+function buildRenderModel<TType extends string=string>(
   payload: ResultPayload,
   options: ResultRespondOptions<TType> = {},
 ): ResultRenderModel<TType> {
   const level = getResultLevel(payload);
-  const type = (options.type || "") as TType | "";
+  const type = (options.type ||"") as TType | "";
   const title = resolveTitle(level, payload.status, options);
 
   return {
@@ -96,7 +96,7 @@ function buildRenderModel<TType extends string = string>(
   };
 }
 
-function resolveLocalizedMessage<Ctx = unknown, TType extends string = string>(
+function resolveLocalizedMessage<Ctx=unknown, TType extends string=string>(
   result: ResultLike,
   config: ResultResponderConfig<Ctx, TType>,
   context: Ctx,
@@ -108,16 +108,16 @@ function resolveLocalizedMessage<Ctx = unknown, TType extends string = string>(
   }
 
   return translateMessage(resolveStatusCode(getResultLevel(result), result.status, result), {
-    bundle: options.i18n,
-    language: config.getLanguage?.(context),
-    variables: meta,
+      bundle: options.i18n,
+      language: config.getLanguage?.(context),
+      variables: meta,
   });
 }
 
 function translateMessage(
   key: string,
   options: {
-    bundle?: Record<string, ResultI18nBundle | undefined>;
+    bundle?: Record<string, ResultI18nBundle|undefined>;
     language?: string | null | undefined;
     variables?: ResultMetadata;
   },
@@ -128,7 +128,7 @@ function translateMessage(
 
 function lookupLocalizedTemplate(
   key: string,
-  bundle: Record<string, ResultI18nBundle | undefined> | undefined,
+  bundle: Record<string, ResultI18nBundle|undefined>|undefined,
   language: string | null | undefined,
 ): string {
   if (!bundle) {
@@ -136,7 +136,7 @@ function lookupLocalizedTemplate(
   }
 
   for (const candidate of languageCandidates(language)) {
-    const value = lookupBundleValue(bundle[candidate], key);
+    const value = lookupPathValue(bundle[candidate], key);
 
     if (typeof value === "string") {
       return value;
@@ -163,29 +163,15 @@ function languageCandidates(language: string | null | undefined): string[] {
   return Array.from(new Set(candidates));
 }
 
-function lookupBundleValue(bundle: ResultI18nBundle | undefined, key: string): unknown {
-  let current: unknown = bundle;
-
-  for (const segment of key.split(".")) {
-    if (!segment || !isObject(current)) {
-      return undefined;
-    }
-
-    current = current[segment];
-  }
-
-  return current;
-}
-
 function interpolateMessage(template: string, variables: ResultMetadata): string {
   return template.replace(/\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}|\{([A-Za-z0-9_.-]+)\}/gu, (match, doubleKey, singleKey) => {
-    const value = lookupVariable(variables, doubleKey || singleKey);
-    return value == null ? match : String(value);
+      const value = lookupPathValue(variables, doubleKey || singleKey);
+      return value == null ? match : String(value);
   });
 }
 
-function lookupVariable(variables: ResultMetadata, key: string): unknown {
-  let current: unknown = variables;
+function lookupPathValue(source: unknown, key: string): unknown {
+  let current = source;
 
   for (const segment of key.split(".")) {
     if (!segment || !isObject(current)) {
@@ -236,7 +222,7 @@ function resolveView<TType extends string>(options: ResultRespondOptions<TType>)
   return typeof options.view === "string" && options.view.trim() ? options.view : null;
 }
 
-function resolvePayloadText<TType extends string = string>(
+function resolvePayloadText<TType extends string=string>(
   payload: ResultPayload,
   options: ResultRespondOptions<TType> = {},
 ): string {
@@ -248,7 +234,7 @@ function resolvePayloadText<TType extends string = string>(
   return defaultTextFallback(model.level, model.status, model.title);
 }
 
-function handleRenderFailure<Ctx = unknown, TType extends string = string>(
+function handleRenderFailure<Ctx=unknown, TType extends string=string>(
   config: ResultResponderConfig<Ctx, TType>,
   logger: NormalizedResultLogger | null,
   context: Ctx,
@@ -256,12 +242,12 @@ function handleRenderFailure<Ctx = unknown, TType extends string = string>(
   error: unknown,
 ) {
   logger?.error(RESULT_RESPONDER_LOG_GROUP, "render-failed", {
-    level: model.level,
-    status: model.status,
-    type: model.type || null,
-    view: model.view,
-    error: formatErrorMessage(error),
-    ...model.meta,
+      level: model.level,
+      status: model.status,
+      type: model.type ||null,
+      view: model.view,
+      error: formatErrorMessage(error),
+      ...model.meta,
   });
 
   return config.sendText(context, model.status, defaultTextFallback(model.level, model.status, model.title));

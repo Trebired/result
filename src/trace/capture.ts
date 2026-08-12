@@ -48,8 +48,8 @@ function traceFailureWithRuntime(
   options: ResultTraceContextInput = {},
 ): ResultTraceRecord | null {
   return isFailedResultLike(failure)
-    ? traceResultWithRuntime(runtime, failure, options)
-    : traceErrorWithRuntime(runtime, failure, options);
+  ? traceResultWithRuntime(runtime, failure, options)
+  : traceErrorWithRuntime(runtime, failure, options);
 }
 
 function emitTraceRecord(

@@ -54,8 +54,8 @@ function createResultTracer(config: ResultTraceConfig = {}): ResultTracer {
   };
 
   Object.defineProperty(tracer, RESULT_TRACER_RUNTIME_SYMBOL, {
-    value: runtime,
-    enumerable: false,
+      value: runtime,
+      enumerable: false,
   });
 
   return tracer;

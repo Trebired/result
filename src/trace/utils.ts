@@ -36,13 +36,13 @@ function captureCallSite(input?: unknown, maxLines = 8): ResultTraceCallSite {
 function compactStack(input?: unknown, maxLines = 8): string[] {
   const stackSource = readStackSource(input);
   return stackSource
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => STACK_LINE_PREFIX.test(line))
-    .map((line) => line.replace(STACK_LINE_PREFIX, ""))
-    .filter((line) => !line.includes("/trace/"))
-    .slice(0, Math.max(0, maxLines));
+  .split("\n")
+  .map((line) => line.trim())
+  .filter(Boolean)
+  .filter((line) => STACK_LINE_PREFIX.test(line))
+  .map((line) => line.replace(STACK_LINE_PREFIX, ""))
+  .filter((line) => !line.includes("/trace/"))
+  .slice(0, Math.max(0, maxLines));
 }
 
 function normalizeThrownValue(
@@ -135,8 +135,8 @@ function renderPreviewValue(
 
   state.seen.add(value);
   return Array.isArray(value)
-    ? renderArrayPreview(value, state, level)
-    : renderObjectPreview(value as Record<string, unknown>, state, level);
+  ? renderArrayPreview(value, state, level)
+  : renderObjectPreview(value as Record<string, unknown>, state, level);
 }
 
 function renderArrayPreview(
@@ -154,8 +154,8 @@ function renderObjectPreview(
   level: number,
 ): string {
   const entries = Object.entries(value)
-    .slice(0, state.items)
-    .map(([key, entry]) => `${key}: ${renderPreviewValue(entry, state, level + 1)}`);
+  .slice(0, state.items)
+  .map(([key, entry]) => `${key}: ${renderPreviewValue(entry, state, level + 1)}`);
   return `{ ${entries.join(", ")}${Object.keys(value).length > state.items ? ", ..." : ""} }`;
 }
 

@@ -18,10 +18,10 @@ function resolveLogger(
   }
 
   return resolveSharedLogger({
-    adapter,
-    fallback: "console",
-    logger,
-    source: PACKAGE_NAME,
+      adapter,
+      fallback: "console",
+      logger,
+      source: PACKAGE_NAME,
   }) as NormalizedResultLogger;
 }
 

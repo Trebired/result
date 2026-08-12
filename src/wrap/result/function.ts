@@ -6,10 +6,10 @@ import { buildPackageLogGroup } from "#ta293zk8h1c4";
 import type { WrapResultFunctionOptions } from "#qsb8x4t06m0e";
 import { wrapResultPromiseWithRuntime } from "./promise.js";
 
-const ORIGINAL_FUNCTION_SYMBOL = Symbol.for("@package/result/original-function");
+const ORIGINAL_FUNCTION_SYMBOL = Symbol.for ("@package/result/original-function");
 const RESULT_FUNCTION_TRACE_LABEL = buildPackageLogGroup("function");
 
-function wrapResultFunction<Fn extends (...args: any[]) => any>(
+function wrapResultFunction<Fn extends(...args:any[])=>any>(
   fn: Fn,
   options: WrapResultFunctionOptions = {},
 ): Fn {
@@ -17,7 +17,7 @@ function wrapResultFunction<Fn extends (...args: any[]) => any>(
   return wrapResultFunctionWithRuntime(runtime, fn, options);
 }
 
-function wrapResultFunctionWithRuntime<Fn extends (...args: any[]) => any>(
+function wrapResultFunctionWithRuntime<Fn extends(...args:any[])=>any>(
   runtime: ReturnType<typeof createResultTraceRuntime>,
   fn: Fn,
   options: WrapResultFunctionOptions = {},
@@ -31,12 +31,12 @@ function wrapResultFunctionWithRuntime<Fn extends (...args: any[]) => any>(
   }
 
   const wrapped = createArityWrapper(original.length, function wrappedInvoker(this: unknown, args: unknown[]) {
-    return invokeWrappedFunction(runtime, original, this, args, options, label);
+      return invokeWrappedFunction(runtime, original, this, args, options, label);
   });
 
   Object.defineProperty(wrapped, ORIGINAL_FUNCTION_SYMBOL, {
-    value: original,
-    enumerable: false,
+      value: original,
+      enumerable: false,
   });
 
   return setCachedEntry(runtime.functionCache, original, label, wrapped) as Fn;
@@ -51,15 +51,15 @@ function invokeWrappedFunction(
   label: string,
 ) {
   return runtime.withTraceLabel(label, () => {
-    try {
-      const output = Reflect.apply(fn, thisArg, args);
-      return isPromiseLike(output)
+      try {
+        const output = Reflect.apply(fn, thisArg, args);
+        return isPromiseLike(output)
         ? wrapResultPromiseWithRuntime(runtime, Promise.resolve(output), { ...options, args, label, source: options.source || label })
         : completeSyncTrace(runtime, output, options, args, label);
-    } catch (error) {
-      traceErrorWithRuntime(runtime, error, { ...options, args, label });
-      throw error;
-    }
+      } catch (error) {
+        traceErrorWithRuntime(runtime, error, { ...options, args, label });
+        throw error;
+      }
   });
 }
 
@@ -80,37 +80,37 @@ function createArityWrapper(
 ): (...args: unknown[]) => unknown {
   switch (Math.max(0, Math.min(length, 6))) {
     case 0:
-      return function resultWrapper0(this: unknown) {
-        return invoke.call(this, []);
-      };
+    return function resultWrapper0(this: unknown) {
+      return invoke.call(this, []);
+    };
     case 1:
-      return function resultWrapper1(this: unknown, a: unknown) {
-        return invoke.call(this, [a]);
-      };
+    return function resultWrapper1(this: unknown, a: unknown) {
+      return invoke.call(this, [a]);
+    };
     case 2:
-      return function resultWrapper2(this: unknown, a: unknown, b: unknown) {
-        return invoke.call(this, [a, b]);
-      };
+    return function resultWrapper2(this: unknown, a: unknown, b: unknown) {
+      return invoke.call(this, [a, b]);
+    };
     case 3:
-      return function resultWrapper3(this: unknown, a: unknown, b: unknown, c: unknown) {
-        return invoke.call(this, [a, b, c]);
-      };
+    return function resultWrapper3(this: unknown, a: unknown, b: unknown, c: unknown) {
+      return invoke.call(this, [a, b, c]);
+    };
     case 4:
-      return function resultWrapper4(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown) {
-        return invoke.call(this, [a, b, c, d]);
-      };
+    return function resultWrapper4(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown) {
+      return invoke.call(this, [a, b, c, d]);
+    };
     case 5:
-      return function resultWrapper5(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown) {
-        return invoke.call(this, [a, b, c, d, e]);
-      };
+    return function resultWrapper5(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown) {
+      return invoke.call(this, [a, b, c, d, e]);
+    };
     default:
-      return function resultWrapper6(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown, f: unknown) {
-        return invoke.call(this, [a, b, c, d, e, f]);
-      };
+    return function resultWrapper6(this: unknown, a: unknown, b: unknown, c: unknown, d: unknown, e: unknown, f: unknown) {
+      return invoke.call(this, [a, b, c, d, e, f]);
+    };
   }
 }
 
-function unwrapFunction<Fn extends (...args: any[]) => any>(fn: Fn): Fn {
+function unwrapFunction<Fn extends(...args:any[])=>any>(fn: Fn): Fn {
   const original = (fn as unknown as Record<PropertyKey, unknown>)[ORIGINAL_FUNCTION_SYMBOL];
   return (typeof original === "function" ? original : fn) as Fn;
 }

@@ -65,4 +65,4 @@ export {
   wrapResultPromise,
 } from "./wrap/result/promise.js";
 
-export type * from "#types";
+export type *from "#types";

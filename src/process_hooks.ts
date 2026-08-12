@@ -1,5 +1,5 @@
 import { traceErrorWithRuntime } from "./trace/capture.js";
-import { createResultTraceRuntime, readTracerRuntime } from "./trace/runtime.js";
+import { createResultTraceRuntime, resolveResultTraceRuntime } from "./trace/runtime.js";
 import type {
   ResultHookInstallation,
   ResultProcessHookOptions,
@@ -9,7 +9,7 @@ import type {
 function installResultProcessHooks(
   options: ResultProcessHookOptions = {},
 ): ResultHookInstallation {
-  const runtime = resolveRuntime(options.tracer, options);
+  const runtime = resolveResultTraceRuntime(options);
   return installResultProcessHooksWithRuntime(runtime, options);
 }
 
@@ -29,19 +29,19 @@ function installResultProcessHooksWithRuntime(
 
   const uncaught = (error: unknown) => {
     const record = traceErrorWithRuntime(runtime, error, {
-      ...options,
-      kind: "uncaught-exception",
-      label: options.label || "process.uncaughtException",
-      source: "uncaughtException",
+        ...options,
+        kind: "uncaught-exception",
+        label: options.label || "process.uncaughtException",
+        source: "uncaughtException",
     });
     applyExitPolicy(record, target, options.exitOnUncaughtException);
   };
   const unhandled = (reason: unknown) => {
     const record = traceErrorWithRuntime(runtime, reason, {
-      ...options,
-      kind: "unhandled-rejection",
-      label: options.label || "process.unhandledRejection",
-      source: "unhandledRejection",
+        ...options,
+        kind: "unhandled-rejection",
+        label: options.label || "process.unhandledRejection",
+        source: "unhandledRejection",
     });
     applyExitPolicy(record, target, options.exitOnUnhandledRejection);
   };
@@ -91,13 +91,6 @@ function removeListener(
   }
 
   target.removeListener?.(event, listener);
-}
-
-function resolveRuntime(
-  tracer: ResultProcessHookOptions["tracer"],
-  options: ResultProcessHookOptions,
-) {
-  return readTracerRuntime(tracer) || createResultTraceRuntime(options);
 }
 
 export {

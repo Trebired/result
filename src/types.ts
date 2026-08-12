@@ -14,10 +14,10 @@ export type ResultLevel = "ok" | "noop" | "error";
 export type ResultMetadata = Record<string, unknown>;
 
 export type ResultBuilderInput<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
-> = TMeta & {
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
+> = TMeta& {
   data?: TData;
   details?: TDetails;
   message?: boolean;
@@ -32,9 +32,9 @@ export type NormalizedResultLogger = NormalizedLoggerAdapter;
 export type ResultLogEvent = LoggerAdapterEvent;
 
 export type ResultLike<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 > = {
   ok: boolean;
   error: boolean;
@@ -46,7 +46,7 @@ export type ResultLike<
   details?: TDetails;
   redirect?: string;
   meta?: TMeta;
-} & Record<string, unknown>;
+} &Record<string, unknown>;
 
 export interface ResultPreset {
   status?: number;
@@ -56,17 +56,17 @@ export interface ResultPreset {
   meta?: ResultMetadata;
 }
 
-export interface ResultPresetGroup<TType extends string = string> {
+export interface ResultPresetGroup<TType extends string=string> {
   default?: ResultPreset;
-  statuses?: Record<string, ResultPreset | undefined>;
-  types?: Record<string, ResultPresetGroup<TType> | undefined>;
+  statuses?: Record<string, ResultPreset|undefined>;
+  types?: Record<string, ResultPresetGroup<TType>|undefined>;
 }
 
-export type ResultPresetMap<TType extends string = string> =
-  Partial<Record<ResultLevel, ResultPresetGroup<TType>>>;
+export type ResultPresetMap<TType extends string=string> =
+Partial<Record<ResultLevel, ResultPresetGroup<TType>>>;
 
-export interface ResolveResultPresetInput<TType extends string = string> {
-  presets?: ResultPresetMap<TType> | null;
+export interface ResolveResultPresetInput<TType extends string=string> {
+  presets?: ResultPresetMap<TType>|null;
   level: ResultLevel;
   status?: number | null;
   type?: TType | null;
@@ -76,11 +76,11 @@ export type ResultI18nBundle = {
   [key: string]: string | ResultI18nBundle;
 };
 
-export type ResultI18nCatalog = Record<string, ResultI18nBundle | undefined>;
+export type ResultI18nCatalog = Record<string, ResultI18nBundle|undefined>;
 
 export type ResultRenderMode = boolean | "auto" | "json" | "text";
 
-export interface ResultRespondOptions<TType extends string = string> {
+export interface ResultRespondOptions<TType extends string=string> {
   i18n?: ResultI18nCatalog;
   render?: ResultRenderMode;
   type?: TType;
@@ -91,9 +91,9 @@ export interface ResultRespondOptions<TType extends string = string> {
 }
 
 export interface ResultPayload<
-  TData = unknown,
-  TDetails = unknown,
-  TMeta extends ResultMetadata = ResultMetadata,
+TData = unknown,
+TDetails = unknown,
+TMeta extends ResultMetadata = ResultMetadata,
 > {
   ok: boolean;
   error: boolean;
@@ -107,7 +107,7 @@ export interface ResultPayload<
   meta?: TMeta;
 }
 
-export interface ResultRenderModel<TType extends string = string> {
+export interface ResultRenderModel<TType extends string=string> {
   level: ResultLevel;
   status: number;
   type: TType | "";
@@ -122,21 +122,21 @@ export interface ResultRenderModel<TType extends string = string> {
 }
 
 export interface ResultResponderConfig<
-  Ctx = unknown,
-  TType extends string = string,
+Ctx = unknown,
+TType extends string = string,
 > {
   logger?: ResultLogger;
   loggerAdapter?: ResultLoggerAdapter;
-  getLanguage?(context: Ctx): string | null | undefined;
+  getLanguage ? (context: Ctx) : string | null | undefined;
   sendJson(context: Ctx, payload: ResultPayload): MaybePromise<unknown>;
   sendText(context: Ctx, status: number, text: string): MaybePromise<unknown>;
-  render?(context: Ctx, model: ResultRenderModel<TType>): MaybePromise<unknown>;
+  render ? (context: Ctx, model: ResultRenderModel<TType>) : MaybePromise<unknown>;
 }
 
-export type ResultResponder<Ctx = unknown, TType extends string = string> = (
+export type ResultResponder<Ctx=unknown, TType extends string=string> = (
   context: Ctx,
   result: ResultLike | null | undefined,
   options?: ResultRespondOptions<TType>,
 ) => MaybePromise<unknown>;
 
-export type * from "./trace/types.js";
+export type *from "./trace/types.js";

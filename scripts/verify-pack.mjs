@@ -27,14 +27,14 @@ async function main() {
 
 async function resetTempRoot() {
   await fs.rm(tempRoot, {
-    force: true,
-    recursive: true,
+      force: true,
+      recursive: true,
   });
   await fs.mkdir(tempRoot, {
-    recursive: true,
+      recursive: true,
   });
   await fs.mkdir(npmCacheDir, {
-    recursive: true,
+      recursive: true,
   });
 }
 
@@ -43,11 +43,11 @@ function packPackage() {
 
   try {
     execFileSync("sh", [
-      "-lc",
-      `npm pack --json > ${shellEscape(stdoutPath)}`,
-    ], {
-      ...createNpmOptions(rootDir),
-      stdio: ["ignore", "inherit", "inherit"],
+        "-lc",
+        `npm pack --json > ${shellEscape(stdoutPath)}`,
+      ], {
+        ...createNpmOptions(rootDir),
+        stdio: ["ignore", "inherit", "inherit"],
     });
   }
   catch (error) {
@@ -56,8 +56,8 @@ function packPackage() {
   }
 
   const stdout = execFileSync("cat", [stdoutPath], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "inherit"],
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "inherit"],
   });
   const [entry] = JSON.parse(stdout);
 
@@ -70,8 +70,8 @@ function packPackage() {
 
 function listTarEntries(tarballPath) {
   const stdout = execFileSync("tar", ["-tf", tarballPath], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "inherit"],
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "inherit"],
   });
 
   return new Set(stdout
@@ -82,8 +82,8 @@ function listTarEntries(tarballPath) {
 
 function readPackedPackageJson(tarballPath) {
   const stdout = execFileSync("tar", ["-xOf", tarballPath, "package/package.json"], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "inherit"],
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "inherit"],
   });
 
   return JSON.parse(stdout);
@@ -163,7 +163,7 @@ async function runConsumerSmokeTest(tarballPath) {
   const consumerDir = path.join(tempRoot, "consumer");
 
   await fs.mkdir(consumerDir, {
-    recursive: true,
+      recursive: true,
   });
   await writeConsumerManifest(consumerDir, tarballPath);
   await writeConsumerTypecheckFixture(consumerDir);
@@ -174,105 +174,105 @@ async function runConsumerSmokeTest(tarballPath) {
 
 async function writeConsumerManifest(consumerDir, tarballPath) {
   await fs.writeFile(path.join(consumerDir, "package.json"), JSON.stringify({
-    name: "result-pack-smoke",
-    private: true,
-    type: "module",
-    dependencies: {
-      "@package/logger-adapter": `file:${loggerAdapterDir}`,
-      "@package/result": `file:${tarballPath}`,
-    },
-    devDependencies: {
-      "@types/node": `file:${nodeTypesDir}`,
-    },
-  }, null, 2));
+        name: "result-pack-smoke",
+        private: true,
+        type: "module",
+        dependencies: {
+          "@package/logger-adapter": `file:${loggerAdapterDir}`,
+          "@package/result": `file:${tarballPath}`,
+        },
+        devDependencies: {
+          "@types/node": `file:${nodeTypesDir}`,
+        },
+      }, null, 2));
 }
 
 async function writeConsumerTypecheckFixture(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "index.ts"), [
-    'import { createResponder, createResultTracer, result } from "@package/result";',
-    "",
-    "const tracer = createResultTracer();",
-    "const respond = createResponder({",
-    "  sendJson(_ctx, payload) {",
-    "    return payload.status;",
-    "  },",
-    "  sendText(_ctx, _status, text) {",
-    "    return text;",
-    "  },",
-    "});",
-    "",
-    "const traced = tracer.wrapFunction(() => result.ok(\"ready\"), {",
-    "  label: \"pack.smoke\",",
-    "});",
-    "",
-    "const out = await respond({}, traced());",
-    "",
-    "console.log(out);",
-  ].join("\n"));
+      'import { createResponder, createResultTracer, result } from "@package/result";',
+      "",
+      "const tracer = createResultTracer();",
+      "const respond = createResponder({",
+      "  sendJson(_ctx, payload) {",
+      "    return payload.status;",
+      "  },",
+      "  sendText(_ctx, _status, text) {",
+      "    return text;",
+      "  },",
+      "});",
+      "",
+      "const traced = tracer.wrapFunction(() => result.ok(\"ready\"), {",
+      "  label: \"pack.smoke\",",
+      "});",
+      "",
+      "const out = await respond({}, traced());",
+      "",
+      "console.log(out);",
+    ].join("\n"));
 }
 
 async function writeConsumerRuntimeFixture(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "runtime.mjs"), [
-    'import { DEFAULT_RESULT_PRESETS, createResultTracer, resolveResultPreset, result } from "@package/result";',
-    "",
-    "const records = [];",
-    "const tracer = createResultTracer({",
-    "  logger(record) {",
-    "    records.push(record);",
-    "  },",
-    "});",
-    "",
-    "const wrapped = tracer.wrapFunction(() => result.notFound(\"packMissing\"), {",
-    "  label: \"pack.runtime\",",
-    "});",
-    "",
-    "wrapped();",
-    "",
-    "const preset = resolveResultPreset({",
-    "  presets: DEFAULT_RESULT_PRESETS,",
-    "  level: \"error\",",
-    "  status: 404,",
-    "  type: \"app.project\",",
-    "});",
-    "",
-    "console.log(typeof preset.title, typeof preset.message, records.length);",
-  ].join("\n"));
+      'import { DEFAULT_RESULT_PRESETS, createResultTracer, resolveResultPreset, result } from "@package/result";',
+      "",
+      "const records = [];",
+      "const tracer = createResultTracer({",
+      "  logger(record) {",
+      "    records.push(record);",
+      "  },",
+      "});",
+      "",
+      "const wrapped = tracer.wrapFunction(() => result.notFound(\"packMissing\"), {",
+      "  label: \"pack.runtime\",",
+      "});",
+      "",
+      "wrapped();",
+      "",
+      "const preset = resolveResultPreset({",
+      "  presets: DEFAULT_RESULT_PRESETS,",
+      "  level: \"error\",",
+      "  status: 404,",
+      "  type: \"app.project\",",
+      "});",
+      "",
+      "console.log(typeof preset.title, typeof preset.message, records.length);",
+    ].join("\n"));
 }
 
 async function writeConsumerTsconfig(consumerDir) {
   await fs.writeFile(path.join(consumerDir, "tsconfig.json"), JSON.stringify({
-    compilerOptions: {
-      lib: [
-        "ES2020",
-      ],
-      module: "ESNext",
-      moduleResolution: "Bundler",
-      noEmit: true,
-      target: "ES2020",
-      types: [
-        "node",
-      ],
-    },
-    include: [
-      "./index.ts",
-    ],
-  }, null, 2));
+        compilerOptions: {
+          lib: [
+            "ES2020",
+          ],
+          module: "ESNext",
+          moduleResolution: "Bundler",
+          noEmit: true,
+          target: "ES2020",
+          types: [
+            "node",
+          ],
+        },
+        include: [
+          "./index.ts",
+        ],
+      }, null, 2));
 }
 
 function runConsumerChecks(consumerDir) {
   execFileSync("npm", ["install", "--ignore-scripts"], {
-    ...createNpmOptions(consumerDir),
-    stdio: "inherit",
+      ...createNpmOptions(consumerDir),
+      stdio: "inherit",
   });
 
   execFileSync(process.execPath, [tscBin, "-p", "tsconfig.json"], {
-    cwd: consumerDir,
-    stdio: "inherit",
+      cwd: consumerDir,
+      stdio: "inherit",
   });
 
   execFileSync("node", ["runtime.mjs"], {
-    cwd: consumerDir,
-    stdio: "inherit",
+      cwd: consumerDir,
+      stdio: "inherit",
   });
 }
 
@@ -289,8 +289,8 @@ function createNpmOptions(cwd) {
 function restorePackageJsonFromBackup() {
   try {
     execFileSync("test", ["-f", packageJsonBackupPath], {
-      cwd: rootDir,
-      stdio: "ignore",
+        cwd: rootDir,
+        stdio: "ignore",
     });
   }
   catch {
@@ -298,13 +298,13 @@ function restorePackageJsonFromBackup() {
   }
 
   execFileSync("cp", [packageJsonBackupPath, path.join(rootDir, "package.json")], {
-    cwd: rootDir,
-    stdio: "ignore",
+      cwd: rootDir,
+      stdio: "ignore",
   });
 }
 
 function shellEscape(value) {
   return `'${String(value).replace(/'/gu, `'\\''`)}'`;
-}
+  }
 
-await main();
+  await main();

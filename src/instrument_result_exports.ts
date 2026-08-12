@@ -1,4 +1,4 @@
-import { createResultTraceRuntime, getCachedEntry, readTracerRuntime, setCachedEntry } from "./trace/runtime.js";
+import { createResultTraceRuntime, getCachedEntry, resolveResultTraceRuntime, setCachedEntry } from "./trace/runtime.js";
 import { isPlainObject, matchTraceTarget, normalizeTraceLabel } from "./trace/utils.js";
 import { wrapResultFunctionWithRuntime } from "./wrap/result/function.js";
 import { buildPackageLogGroup } from "./package-metadata.js";
@@ -12,7 +12,7 @@ function instrumentResultExports<T>(
   target: T,
   options: InstrumentResultExportsOptions = {},
 ): T {
-  const runtime = resolveRuntime(options.tracer, options);
+  const runtime = resolveResultTraceRuntime(options);
   return instrumentResultExportsWithRuntime(runtime, target, options);
 }
 
@@ -38,9 +38,9 @@ function instrumentValue(
       return value;
     }
 
-    return wrapResultFunctionWithRuntime(runtime, value as (...args: any[]) => any, {
-      ...options,
-      label,
+    return wrapResultFunctionWithRuntime(runtime, value as(...args: any[]) => any, {
+        ...options,
+        label,
     });
   }
 
@@ -92,13 +92,6 @@ function resolveDepth(
   depth: number | undefined,
 ): number {
   return typeof depth === "number" ? depth : runtime.config.objectDepth;
-}
-
-function resolveRuntime(
-  tracer: InstrumentResultExportsOptions["tracer"],
-  options: InstrumentResultExportsOptions,
-) {
-  return readTracerRuntime(tracer) || createResultTraceRuntime(options);
 }
 
 export {
