@@ -1,6 +1,6 @@
 {
   "name": "@trebired/result",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "Shared result builders, response orchestration, and failure tracing for Bun packages.",
   "type": "module",
   "private": false,
