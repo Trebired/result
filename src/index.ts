@@ -20,6 +20,18 @@ export {
   respond,
 } from "#responder";
 export {
+  RESULT_PROJECT_CONFIG_PATH,
+  defineConfig,
+  findConfig,
+  findConfigSync,
+  loadCachedConfigSync,
+  loadConfig,
+  loadConfigSync,
+  mergeResponderOptions,
+  mergeTracingOptions,
+  normalizeConfig,
+} from "./config/index.js";
+export {
   shapeResultPayload,
   translateMessage,
 } from "#fkl0t1n99da1";
@@ -66,3 +78,11 @@ export {
 } from "./wrap/result/promise.js";
 
 export type *from "#types";
+export type {
+  LoadResultConfigOptions,
+  LoadedResultConfig,
+  NormalizedResultConfig,
+  ResultConfig,
+  ResultResponderConfigDefaults,
+  ResultTracingConfigurableOptions,
+} from "./config/index.js";

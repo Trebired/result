@@ -7,6 +7,7 @@ import { instrumentResultExportsWithRuntime } from "./instrument_result_exports.
 import { installResultModuleHooksWithRuntime } from "./module_hooks.js";
 import { installResultProcessHooksWithRuntime } from "./process_hooks.js";
 import { createResultTraceRuntime, RESULT_TRACER_RUNTIME_SYMBOL } from "./trace/runtime.js";
+import { loadCachedConfigSync, mergeTracingOptions } from "./config/index.js";
 import { wrapResultFunctionWithRuntime } from "./wrap/result/function.js";
 import { wrapResultPromiseWithRuntime } from "./wrap/result/promise.js";
 import type {
@@ -18,7 +19,8 @@ import type {
 } from "./trace/types.js";
 
 function createResultTracer(config: ResultTraceConfig = {}): ResultTracer {
-  const runtime = createResultTraceRuntime(config);
+  const resolvedConfig = mergeTracingOptions(loadCachedConfigSync().tracing, config);
+  const runtime = createResultTraceRuntime(resolvedConfig);
   const tracer: ResultTracer = {
     config: runtime.config,
     traceFailure(failure, options) {
@@ -62,12 +64,13 @@ function createResultTracer(config: ResultTraceConfig = {}): ResultTracer {
 }
 
 function bootResultTracing(config: BootResultTracingOptions = {}): ResultTracingBoot {
-  const tracer = createResultTracer(config);
+  const resolvedConfig = mergeTracingOptions(loadCachedConfigSync().tracing, config);
+  const tracer = createResultTracer(resolvedConfig);
 
   return {
     tracer,
-    processHooks: resolveBootProcessHooks(tracer, config),
-    moduleHooks: resolveBootModuleHooks(tracer, config),
+    processHooks: resolveBootProcessHooks(tracer, resolvedConfig),
+    moduleHooks: resolveBootModuleHooks(tracer, resolvedConfig),
   };
 }
 

@@ -1,4 +1,5 @@
 import { resolveLogger } from "./logging.js";
+import { loadCachedConfigSync, mergeResponderOptions } from "./config/index.js";
 import {
   buildRenderModel,
   handleRenderFailure,
@@ -32,22 +33,23 @@ function respond<Ctx=unknown, TType extends string=string>(
   config: ResultResponderConfig<Ctx, TType>,
 ) {
   const logger = resolveLogger(config.logger, config.loggerAdapter);
-  const payload = shapeResultPayload(result, config, context, options);
-  const renderMode = options.render ?? false;
+  const responseOptions = mergeResponderOptions(loadCachedConfigSync().responder, options);
+  const payload = shapeResultPayload(result, config, context, responseOptions);
+  const renderMode = responseOptions.render ?? false;
 
   if (renderMode === "text") {
-    return config.sendText(context, payload.status, resolvePayloadText(payload, options));
+    return config.sendText(context, payload.status, resolvePayloadText(payload, responseOptions));
   }
 
   if (renderMode === true || renderMode === "auto") {
-    const model = buildRenderModel(payload, options);
+    const model = buildRenderModel(payload, responseOptions);
 
     if (config.render) {
       return renderWithFallback(config, logger, context, model);
     }
 
     if (renderMode === true) {
-      return config.sendText(context, payload.status, resolvePayloadText(payload, options));
+      return config.sendText(context, payload.status, resolvePayloadText(payload, responseOptions));
     }
   }
 

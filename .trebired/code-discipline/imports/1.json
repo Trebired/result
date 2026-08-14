@@ -2,11 +2,14 @@
   "#0231fmpa2dc7": "./src/trace/runtime.ts",
   "#0g27abpmv4cx": "./src/process_hooks.ts",
   "#2pn6ampfiwx7": "./.trebired/logger/config.ts",
+  "#3oonpnu0envb": "./src/config/types.ts",
   "#49kqgj47729a": "./src/module_hooks.ts",
   "#64bp6qrycvs2": "./scripts/build/generated/tsconfig.mjs",
   "#9u38bvr71ysb": "./src/logging.ts",
+  "#aclzp85tgv4w": "./src/config/load.ts",
   "#d86qbh1bojkk": "./scripts/prepare-dist.mjs",
   "#f50kks3ik0zv": "./src/instrument_result_exports.ts",
+  "#f8saek50kvpj": "./src/config/index.ts",
   "#fkl0t1n99da1": "./src/responder_support.ts",
   "#index": "./src/index.ts",
   "#j7kz1s2wcwqd": "./src/tracer.ts",
@@ -20,6 +23,7 @@
   "#shared": "./src/shared.ts",
   "#ta293zk8h1c4": "./src/package-metadata.ts",
   "#types": "./src/types.ts",
+  "#udgy1dbvhgop": "./src/config/normalize.ts",
   "#ypczi4qi4ap6": "./src/trace/utils.ts",
   "#yx1thbjr1hr9": "./scripts/verify-pack.mjs"
 }
