@@ -8,11 +8,13 @@ type ResultResponderConfigDefaults<TType extends string=string> =
 Partial<Pick<ResultRespondOptions<TType>, "details"|"meta"|"render"|"title"|"type"|"view">>;
 
 type ResultConfig = {
+  forVersion?: string;
   responder?: ResultResponderConfigDefaults;
   tracing?: BootResultTracingOptions;
 };
 
 type NormalizedResultConfig = {
+  forVersion: string;
   responder: ResultResponderConfigDefaults;
   tracing: BootResultTracingOptions;
 };

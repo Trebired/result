@@ -3,6 +3,7 @@ import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { PACKAGE_VERSION } from "#ta293zk8h1c4";
 import type {
   LoadResultConfigOptions,
   LoadedResultConfig,
@@ -12,7 +13,10 @@ import type {
 import { defineConfig, normalizeConfig } from "./normalize.js";
 
 const RESULT_PROJECT_CONFIG_PATH = ".trebired/result/config.ts";
-const EMPTY_CONFIG = Object.freeze(normalizeConfig({}));
+const EMPTY_CONFIG = Object.freeze(normalizeConfig(
+    { forVersion: PACKAGE_VERSION },
+    { requireForVersion: false },
+));
 
 let cachedConfigs = new Map<string, LoadedResultConfig>();
 
@@ -98,7 +102,7 @@ function missingConfig(): LoadedResultConfig {
 
 function loadedConfig(configPath: string, config: ResultConfig): LoadedResultConfig {
   return {
-    config: normalizeConfig(config),
+    config: normalizeConfig(config, { configPath, requireForVersion: true }),
     configPath,
     dependencies: [configPath],
   };

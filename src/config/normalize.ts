@@ -4,17 +4,32 @@ import type {
   ResultResponderConfigDefaults,
   ResultTracingConfigurableOptions,
 } from "./types.js";
+import { PACKAGE_VERSION } from "#ta293zk8h1c4";
+import {
+  isRecord,
+  toTrimmedString,
+} from "@trebired/utils";
+import { resolveForVersion } from "@trebired/utils";
+
+type NormalizeOptions = {
+  configPath?: string;
+  requireForVersion?: boolean;
+};
 
 function defineConfig<TConfig extends ResultConfig>(config: TConfig): TConfig {
   return config;
 }
 
-function normalizeConfig(config: ResultConfig = {}): NormalizedResultConfig {
+function normalizeConfig(
+  config: ResultConfig = {},
+  options: NormalizeOptions = {},
+): NormalizedResultConfig {
   if (!isRecord(config)) {
     throw new Error("result config must be an object");
   }
 
   return {
+    forVersion: normalizeForVersion(config, options),
     responder: normalizeResponder(config.responder),
     tracing: normalizeTracing(config.tracing),
   };
@@ -73,12 +88,21 @@ function mergeObjects<TValue extends object>(left: TValue | undefined, right: TV
 }
 
 function normalizeString(value: unknown): string | undefined {
-  const normalized = typeof value === "string" ? value.trim() : "";
+  const normalized = toTrimmedString(value);
   return normalized || undefined;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+function normalizeForVersion(
+  config: ResultConfig,
+  options: NormalizeOptions,
+): string {
+  return resolveForVersion({
+      configPath: options.configPath,
+      forVersion: config.forVersion,
+      label: "result",
+      packageVersion: PACKAGE_VERSION,
+      requireForVersion: options.requireForVersion,
+  });
 }
 
 function pickDefined<TValue extends Record<string, unknown>>(input: TValue): Partial<TValue> {

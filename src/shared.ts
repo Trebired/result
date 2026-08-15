@@ -1,3 +1,4 @@
+import { isRecord as isObject } from "@trebired/utils";
 import type { ResultLevel, ResultLike, ResultMetadata } from "#types";
 
 const RESULT_CORE_KEYS = new Set([
@@ -38,10 +39,6 @@ const DEFAULT_ERROR_MESSAGES: Record<number, string> = {
   503: "The service is temporarily unavailable.",
   504: "The upstream service did not respond in time.",
 };
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return value != null && typeof value === "object" && !Array.isArray(value);
-}
 
 function hasOwn(value: unknown, key: string): boolean {
   return isObject(value) && Object.prototype.hasOwnProperty.call(value, key);

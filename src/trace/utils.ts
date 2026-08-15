@@ -5,6 +5,7 @@ import {
   toResultStatus,
 } from "#shared";
 import { buildPackageLogGroup } from "#ta293zk8h1c4";
+import { isPlainObject } from "@trebired/utils";
 import type {
   ResultTraceCallSite,
   ResultTraceFailureSummary,
@@ -108,15 +109,6 @@ function matchTraceTarget(target: string, include?: ResultTraceFilter, exclude?:
   }
 
   return include ? matchesFilter(include, target) : true;
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (!isObject(value)) {
-    return false;
-  }
-
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
 }
 
 function renderPreviewValue(
