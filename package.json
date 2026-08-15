@@ -1,6 +1,6 @@
 {
   "name": "@trebired/result",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Shared result builders, response orchestration, and failure tracing for Bun packages.",
   "type": "module",
   "private": false,
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.4.6",
-    "@trebired/utils": "^0.4.3"
+    "@trebired/utils": "^0.4.4"
   },
   "devDependencies": {
     "@trebired/code-discipline": "^6.1.0",
