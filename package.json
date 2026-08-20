@@ -8,7 +8,7 @@
     }
   },
   "name": "@trebired/result",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Shared result builders, response orchestration, and failure tracing for Bun packages.",
   "type": "module",
   "private": false,
@@ -46,7 +46,7 @@
     "verify:pack": "bun ./scripts/verify-pack.mjs"
   },
   "dependencies": {
-    "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.4.6",
+    "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.4.17",
     "@trebired/utils": "^0.6.0"
   },
   "devDependencies": {
