@@ -121,6 +121,13 @@ export interface ResultRenderModel<TType extends string=string> {
   payload: ResultPayload;
 }
 
+export type ResultTranslateInput = {
+  bundle: ResultI18nCatalog | undefined;
+  key: string;
+  language: string | null | undefined;
+  variables: ResultMetadata;
+};
+
 export interface ResultResponderConfig<
 Ctx = unknown,
 TType extends string = string,
@@ -128,6 +135,7 @@ TType extends string = string,
   logger?: ResultLogger;
   loggerAdapter?: ResultLoggerAdapter;
   getLanguage ? (context: Ctx) : string | null | undefined;
+  translate ? (input: ResultTranslateInput) : string | null | undefined;
   sendJson(context: Ctx, payload: ResultPayload): MaybePromise<unknown>;
   sendText(context: Ctx, status: number, text: string): MaybePromise<unknown>;
   render ? (context: Ctx, model: ResultRenderModel<TType>) : MaybePromise<unknown>;

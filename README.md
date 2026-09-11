@@ -151,6 +151,18 @@ Translation rules:
 - missing selected-language keys fall back to `en` in the same local bundle
 - missing keys in all bundles return the key itself
 
+A responder can take over translation with `translate({ bundle, key, language, variables })`. It runs first; returning a non-empty string uses that text, and returning `null`, `undefined` or `""` falls back to the built-in lookup. Use it to hand messages to a full formatter, such as `@trebired/i18n` for plural messages and grammar pipes:
+
+```ts
+const respond = createResponder({
+  getLanguage: (ctx) => ctx.lang,
+  translate: ({ bundle, key, language, variables }) =>
+  bundle ? createTranslator(bundle, language)(key, variables) : null,
+  sendJson: (ctx, payload) => ctx.send(payload.status, payload),
+  sendText: (ctx, status, text) => ctx.sendText(status, text),
+});
+```
+
 There is no global registry, generated dictionary source, or `globalThis` lookup.
 
 ### Responder

@@ -107,9 +107,14 @@ function resolveLocalizedMessage<Ctx=unknown, TType extends string=string>(
     return null;
   }
 
-  return translateMessage(resolveStatusCode(getResultLevel(result), result.status, result), {
+  const key = resolveStatusCode(getResultLevel(result), result.status, result);
+  const language = config.getLanguage?.(context);
+  const translated = config.translate?.({ bundle: options.i18n, key, language, variables: meta });
+  if (typeof translated === "string" && translated) return translated;
+
+  return translateMessage(key, {
       bundle: options.i18n,
-      language: config.getLanguage?.(context),
+      language,
       variables: meta,
   });
 }

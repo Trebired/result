@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+- Added the `translate({ bundle, key, language, variables })` responder hook and the `ResultTranslateInput` type. It runs before the built-in lookup, so an application can hand result messages to a full formatter such as `@trebired/i18n`. The built-in lookup only reads string templates, so a plural message (`{ one, few, many, other }`) or a grammar pipe in a result bundle printed the key instead of the text. Returning `null`, `undefined` or an empty string falls back to the built-in lookup, so responders without the hook behave as before.
+
 ## 1.3.2
 
 - Changed the verification scripts and examples to print through `@trebired/logger-adapter` instead of `console` and `process.stdout`.
